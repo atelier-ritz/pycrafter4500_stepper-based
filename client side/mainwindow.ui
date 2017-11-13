@@ -1,0 +1,340 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>512</width>
+    <height>712</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>New text Editor</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <widget class="QGroupBox" name="groupBox">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>0</y>
+      <width>201</width>
+      <height>111</height>
+     </rect>
+    </property>
+    <property name="title">
+     <string>Projector Config</string>
+    </property>
+    <widget class="QPushButton" name="btn_LED_set">
+     <property name="geometry">
+      <rect>
+       <x>60</x>
+       <y>80</y>
+       <width>75</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Set</string>
+     </property>
+    </widget>
+    <widget class="QWidget" name="">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>30</y>
+       <width>181</width>
+       <height>48</height>
+      </rect>
+     </property>
+     <layout class="QGridLayout" name="gridLayout_2">
+      <item row="0" column="0">
+       <widget class="QLabel" name="label">
+        <property name="text">
+         <string>Light Intensity (0-255)</string>
+        </property>
+        <property name="wordWrap">
+         <bool>false</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QSpinBox" name="spb_LED_intensity">
+        <property name="maximum">
+         <number>255</number>
+        </property>
+        <property name="displayIntegerBase">
+         <number>10</number>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="label_2">
+        <property name="text">
+         <string>Exposure Time (ms)</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QSpinBox" name="spb_LED_exposureTime">
+        <property name="maximum">
+         <number>5000</number>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </widget>
+   <widget class="QGroupBox" name="groupBox_2">
+    <property name="geometry">
+     <rect>
+      <x>200</x>
+      <y>0</y>
+      <width>291</width>
+      <height>671</height>
+     </rect>
+    </property>
+    <property name="title">
+     <string>Text Editor</string>
+    </property>
+    <widget class="QPlainTextEdit" name="editor">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>20</y>
+       <width>271</width>
+       <height>531</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="btn_editor_update">
+     <property name="geometry">
+      <rect>
+       <x>80</x>
+       <y>560</y>
+       <width>121</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Run</string>
+     </property>
+    </widget>
+   </widget>
+   <widget class="QGroupBox" name="groupBox_3">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>490</y>
+      <width>201</width>
+      <height>141</height>
+     </rect>
+    </property>
+    <property name="title">
+     <string>Available commands</string>
+    </property>
+    <widget class="QLabel" name="label_3">
+     <property name="geometry">
+      <rect>
+       <x>20</x>
+       <y>40</y>
+       <width>161</width>
+       <height>431</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;wait(n): wait n seconds&lt;/p&gt;&lt;p&gt;gimbal(a, b): move the gimbal and wait until it finishes. a-&amp;gt; roll, b-&amp;gt; pitch&lt;/p&gt;&lt;p&gt;rect(x, y, w, h): register a rectangle on the canvas. 0 &amp;lt;= x,y,w,h &amp;lt;=1&lt;/p&gt;&lt;p&gt;show(_): plot all rectangles on canvas&lt;/p&gt;&lt;p&gt;cure(_): turn on the projector. It runs with the parameters in config&lt;/p&gt;&lt;p&gt;//: comments. won't be evaluated.&lt;/p&gt;&lt;p&gt;variable_name = value: assign valuables. These variables, together with +, -, *, and /, can be used as arguments in a function.&lt;br/&gt;&lt;/p&gt;&lt;p&gt;Ctrl + N: new editor&lt;/p&gt;&lt;p&gt;Ctrl + S: save editor&lt;/p&gt;&lt;p&gt;Ctrl + O: open editor&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     </property>
+     <property name="wordWrap">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </widget>
+   <widget class="QGroupBox" name="groupBox_4">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>110</y>
+      <width>201</width>
+      <height>91</height>
+     </rect>
+    </property>
+    <property name="title">
+     <string>Direct Stepper Motor Control</string>
+    </property>
+    <widget class="QWidget" name="">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>23</y>
+       <width>181</width>
+       <height>54</height>
+      </rect>
+     </property>
+     <layout class="QGridLayout" name="gridLayout">
+      <item row="0" column="0">
+       <widget class="QLabel" name="label_4">
+        <property name="text">
+         <string>#1 steps</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QSpinBox" name="spb_motor1_step">
+        <property name="minimum">
+         <number>-999</number>
+        </property>
+        <property name="maximum">
+         <number>999</number>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="2">
+       <widget class="QPushButton" name="btn_motor1_run">
+        <property name="text">
+         <string>Run</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="label_5">
+        <property name="text">
+         <string>#2 steps</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QSpinBox" name="spb_motor2_step">
+        <property name="minimum">
+         <number>-999</number>
+        </property>
+        <property name="maximum">
+         <number>999</number>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="2">
+       <widget class="QPushButton" name="btn_motor2_run">
+        <property name="text">
+         <string>Run</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+    <zorder>label_4</zorder>
+    <zorder>spb_motor1_step</zorder>
+    <zorder>btn_motor1_run</zorder>
+    <zorder>label_5</zorder>
+    <zorder>spb_motor2_step</zorder>
+    <zorder>btn_motor2_run</zorder>
+    <zorder>groupBox_5</zorder>
+   </widget>
+   <widget class="QGroupBox" name="groupBox_5">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>200</y>
+      <width>201</width>
+      <height>141</height>
+     </rect>
+    </property>
+    <property name="title">
+     <string>Hall Sensor Control</string>
+    </property>
+    <widget class="QCheckBox" name="checkBox">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>20</y>
+       <width>101</width>
+       <height>17</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Enable Update</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_6">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>40</y>
+       <width>47</width>
+       <height>13</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>X</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_7">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>60</y>
+       <width>47</width>
+       <height>13</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Y</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_8">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>80</y>
+       <width>47</width>
+       <height>13</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Z</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_9">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>100</y>
+       <width>61</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>angle_horz</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_10">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>120</y>
+       <width>61</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>angle_vert</string>
+     </property>
+    </widget>
+   </widget>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>512</width>
+     <height>21</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

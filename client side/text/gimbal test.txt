@@ -1,0 +1,30 @@
+// assign variables
+x = 0.3
+y = 0.2
+w = 0.2
+
+"phase1"
+gimbal(0,0)
+rect(x,y,w,w)
+rect(x+w,y,w,w)
+rect(x+2*w,y,w,w)
+show(0)
+cure(0)
+
+"phase2"
+gimbal(20,20)
+rect(x+w,y+w,w,w)
+show(0)
+cure(0)
+
+"phase3"
+gimbal(100,-40)
+rect(x+w,y+w,w,w)
+show(0)
+cure(0)
+
+"phase4"
+gimbal(10,60)
+rect(x+w,y+w,w,w)
+show(0)
+cure(0)

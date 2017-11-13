@@ -1,0 +1,15 @@
+This example shows how the regular expression works. 
+
+It will comment out everything after //
+
+// e.g. this line will not be read
+
+This will be read // but this will not
+
+     It will strip out all empty lines and spaces        //this line has spaces at the beginning and the end
+
+It can identify functions as below:
+
+rect(0.1, 0.1, 0.2, 0.2)
+
+and get the function name and arguments.

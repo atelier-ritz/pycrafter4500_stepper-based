@@ -1,0 +1,49 @@
+// assign variables
+//variable assignment
+a = 0.12
+g = 0.1
+
+gimbal(0,0)
+rect(0,0,a,a)
+show(0)
+cure(0)
+
+gimbal(20,20)
+rect(a+g,0,a,a)
+show(0)
+cure(0)
+
+gimbal(40,0)
+rect(2*a+2*g,0,a,a)
+show(0)
+cure(0)
+
+gimbal(20,-20)
+rect(0,a+g,a,a)
+show(0)
+cure(0)
+
+gimbal(40,-40)
+rect(a+g,a+g,a,a)
+show(0)
+cure(0)
+
+gimbal(40,-60)
+rect(2*a+2*g,a+g,a,a)
+show(0)
+cure(0)
+
+gimbal(20,-40)
+rect(0,2*a+2*g,a,a)
+show(0)
+cure(0)
+
+gimbal(0,-60)
+rect(a+g,2*a+2*g,a,a)
+show(0)
+cure(0)
+
+gimbal(20,-20)
+rect(2*a+2*g,2*a+2*g,a,a)
+show(0)
+cure(0)

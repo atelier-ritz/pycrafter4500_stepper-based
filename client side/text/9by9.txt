@@ -1,0 +1,17 @@
+// assign variables
+a = 0.12
+g = 0.1
+//gimbal(0,0)
+
+
+rect(0,0,a,a)
+rect(a+g,0,a,a)
+rect(2*a+2*g,0,a,a)
+rect(0,a+g,a,a)
+rect(a+g,a+g,a,a)
+rect(2*a+2*g,a+g,a,a)
+rect(0,2*a+2*g,a,a)
+rect(a+g,2*a+2*g,a,a)
+rect(2*a+2*g,2*a+2*g,a,a)
+show(0)
+cure(0)
