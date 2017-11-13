@@ -27,20 +27,19 @@ class TLV493D():
           val = val * 0.098
           return val
      def update(self):
-          buffer = self.bus.read_i2c_block_data(I2C_ADDRESS,0x00,6)
-          x_bit = (buffer[0] << 4) + (buffer[4] >> 4)
-          y_bit = (buffer[1] << 4) + (buffer[4] & 0x0f)
-          z_bit = (buffer[2] << 4) + (buffer[5] & 0x0f)
-          x_mT = self.bit2mT(x_bit)
-          y_mT = self.bit2mT(y_bit)
-          z_mT = self.bit2mT(z_bit)
-          self.field = [x_mT,y_mT,z_mT]
-          self.mag = math.sqrt(x_mT**2 + y_mT**2 + z_mT**2)
-          self.theta = math.atan2(y_mT,x_mT) / math.pi * 180
-          self.phi = math.acos(z_mT/self.mag) / math.pi * 180
-          print(self.field)
-          thread = threading.Timer(1,self.update)
-          thread.start()
+          while True:
+               buffer = self.bus.read_i2c_block_data(I2C_ADDRESS,0x00,6)
+               x_bit = (buffer[0] << 4) + (buffer[4] >> 4)
+               y_bit = (buffer[1] << 4) + (buffer[4] & 0x0f)
+               z_bit = (buffer[2] << 4) + (buffer[5] & 0x0f)
+               x_mT = self.bit2mT(x_bit)
+               y_mT = self.bit2mT(y_bit)
+               z_mT = self.bit2mT(z_bit)
+               self.field = [x_mT,y_mT,z_mT]
+               self.mag = math.sqrt(x_mT**2 + y_mT**2 + z_mT**2)
+               self.phi = math.atan2(y_mT,x_mT) / math.pi * 180
+               self.theta = math.acos(z_mT/self.mag) / math.pi * 180
+               time.sleep(0.1)
 
 if __name__ == "__main__":
      sensor = TLV493D()
