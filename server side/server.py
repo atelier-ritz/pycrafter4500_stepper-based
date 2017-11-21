@@ -53,7 +53,7 @@ class Server(object):
                         commandList = self.str2list(command)
                         self.analyzecmd(commandList)
                     # self.client[0][0].sendto('received'.encode(), self.client[0][1])
-    
+
     def analyzecmd(self,cmd):
         mm = self.mm
 ##        if cmd[0] == 'motorGoAndTouch':
@@ -79,5 +79,5 @@ class Server(object):
             mm.motor1_run(int(cmd[1]),int(cmd[2]))
         if cmd[0] == 'motorgo2':
             mm.motor2_run(int(cmd[1]),int(cmd[2]))
-
-
+        if cmd[0] == 'motor12goto':
+            mm.motor12_goto_field(int(cmd[1]),int(cmd[2]))
