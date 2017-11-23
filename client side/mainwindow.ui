@@ -126,9 +126,9 @@
     <property name="geometry">
      <rect>
       <x>0</x>
-      <y>290</y>
+      <y>320</y>
       <width>201</width>
-      <height>381</height>
+      <height>351</height>
      </rect>
     </property>
     <property name="title">
@@ -230,7 +230,7 @@
       <x>0</x>
       <y>200</y>
       <width>201</width>
-      <height>91</height>
+      <height>111</height>
      </rect>
     </property>
     <property name="title">
@@ -241,7 +241,7 @@
       <rect>
        <x>10</x>
        <y>23</y>
-       <width>181</width>
+       <width>191</width>
        <height>54</height>
       </rect>
      </property>
@@ -295,6 +295,19 @@
        </widget>
       </item>
      </layout>
+    </widget>
+    <widget class="QPushButton" name="btn_phi_theta_run">
+     <property name="geometry">
+      <rect>
+       <x>14</x>
+       <y>80</y>
+       <width>181</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Run both</string>
+     </property>
     </widget>
    </widget>
   </widget>

@@ -2,7 +2,7 @@ import socket
 import threading
 
 class Client(object):
-    def __init__(self,host='192.168.31.123',port=9997):
+    def __init__(self,host='192.168.31.118',port=9997):
         self.host = host
         self.port = port
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -19,7 +19,7 @@ class Client(object):
         while True:
             data = sock.recv(1024)
             returnedStr = data.decode("utf-8")
-            print("[Reply]{}".format(returnedStr))
+            # print("[Reply]{}".format(returnedStr))
             if returnedStr == 'Motor is done!':
                 self.isBusy = False
             return

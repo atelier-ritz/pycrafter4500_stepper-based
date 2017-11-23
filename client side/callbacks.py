@@ -41,6 +41,9 @@ class GUI(QMainWindow,Ui_MainWindow):
     def setupMotors(self):
         self.btn_motor1_run.clicked.connect(self.on_btn_motor1_run)
         self.btn_motor2_run.clicked.connect(self.on_btn_motor2_run)
+        self.btn_phi_run.clicked.connect(self.on_btn_phi_run)
+        self.btn_theta_run.clicked.connect(self.on_btn_theta_run)
+        self.btn_phi_theta_run.clicked.connect(self.on_btn_phi_theta_run)
 
     def setupCallbacksEditor(self):
         self.currentFilePath = ''
@@ -120,6 +123,18 @@ class GUI(QMainWindow,Ui_MainWindow):
     def on_btn_motor2_run(self):
         val = self.spb_motor2_step.value()
         mm.motorgo(1,val)
+
+    def on_btn_phi_run(self):
+        val = self.spb_phi.value()
+        mm.phiGo(val)
+
+    def on_btn_theta_run(self):
+        val = self.spb_theta.value()
+        mm.thetaGo(val)
+    def on_btn_phi_theta_run(self):
+        phi = self.spb_phi.value()
+        theta = self.spb_theta.value()
+        mm.magneticFieldGo(phi,theta)
 
     def on_btn_editor_update(self):
         tp.clear()

@@ -8,7 +8,7 @@ class MotorManager(object):
     def _sendCommand(self,command):
         client = self.client
         client.send_data(command)
-        # print('command sent {}'.format(command))
+        print('command sent {}'.format(command))
 
     def motorgo(self,motorId,val):
         if val == 0 :
@@ -16,6 +16,15 @@ class MotorManager(object):
         step = abs(val)
         direction = int(val/step)
         command = 'motorgo{},{},{}'.format(motorId+1,step,direction)
+        self._sendCommand(command)
+    def phiGo(self,val):
+        command = 'phigo,{}'.format(val)
+        self._sendCommand(command)
+    def thetaGo(self,val):
+        command = 'thetago,{}'.format(val)
+        self._sendCommand(command)
+    def magneticFieldGo(self,phi,theta):
+        command = 'fieldgo,{},{}'.format(phi,theta)
         self._sendCommand(command)
     def setParam(self,rpm1,rpm2,stepperrev1,stepperrev2):
         command = 'setparam,{},{},{},{}'.format(rpm1,rpm2,stepperrev1,stepperrev2)
