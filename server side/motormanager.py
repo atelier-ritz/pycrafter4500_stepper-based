@@ -2,16 +2,19 @@ from Adafruit_MotorHAT_Motors import Adafruit_MotorHAT, Adafruit_StepperMotor
 import atexit
 import RPi.GPIO as GPIO
 import threading
-
+import time
+import math
 GPIO.setmode(GPIO.BCM)
 GPIO.setwarnings(False)
 GPIO.setup(20,GPIO.OUT)
 
 class MotorManager():
+    TOL_PHI = 1   # tolerance of phi (deg)
+    TOL_THETA = 1 # tolerance of theta (deg)
     def __init__(self,controller,sensor):
         self.controller = controller
         self.sensor = sensor
-        self.degperstep = 1.4
+        self.degperstep = 0.9
 
     def set_param(self,stepPerRev1,stepPerRev2,spd1,spd2):
         mystepper1 = self.controller.getStepper(1)
@@ -32,12 +35,19 @@ class MotorManager():
         stepper.step(numsteps, direction, style)
         print("Motor {} is done!".format(stepper.motornum))
 
-    def macro1(self):
+    def fieldDeg2shaftDeg(self,val):
+        fieldRad = val / 180 * math.pi
+        shaftRad = math.atan2(2*math.sin(fieldRad),math.cos(fieldRad))
+        shaftDeg = shaftRad / math.pi * 180
+        return shaftDeg
+
+        
+    def motor2_run_theta(self,theta):
         stepper = self.controller.getStepper(2)
-        theta_cmd = 90
-        tol = 5 % tolerance
+        theta_cmd = theta
+        tol = self.TOL_THETA
         while True:
-            theta_msr = self.sensor.theta # [-180,180] deg
+            theta_msr = self.sensor.theta # [0,180] deg
             errorField = theta_cmd - theta_msr
             if errorField < tol and errorField > -tol:
                 break
@@ -45,33 +55,27 @@ class MotorManager():
                 direction = 1
             else:
                 direction = 2
-            errorShaft = ??????????????
-            numsteps = self.degperstep * abs(errorShaft)
+            errorShaft = self.fieldDeg2shaftDeg(theta_cmd) - self.fieldDeg2shaftDeg(theta_msr)
+            numsteps = max(int(self.degperstep * abs(errorShaft)),1)
             stepper.step(numsteps,direction,Adafruit_MotorHAT.INTERLEAVE)
             time.sleep(1)
 
-    def macro2(self,phi):
+    def motor1_run_phi(self,phi):
         stepper = self.controller.getStepper(1)
         phi_cmd = phi
-        tol = 5 % tolerance
+        tol = self.TOL_PHI
         while True:
             phi_msr = self.sensor.phi # [-180,180] deg
             error = phi_cmd - phi_msr
             if error < tol and error > -tol:
                 break
-            if error >= tol:
+            if error <= tol:
                 direction = 1
             else:
                 direction = 2
-            numsteps = self.degperstep * abs(error)
+            numsteps = max(int(self.degperstep * abs(error)),1)
             stepper.step(numsteps,direction,Adafruit_MotorHAT.INTERLEAVE)
             time.sleep(1)
-
-    def stepper_worker_polar(self,phi):
-
-
-    def stepper_worker_theta(self,theta):
-
 
     def motor1_run(self,step,direction):
         th1 = threading.Thread(target=self.stepper_worker,
@@ -83,14 +87,29 @@ class MotorManager():
                                args=(self.controller.getStepper(2), step, direction,
                                Adafruit_MotorHAT.INTERLEAVE))
         th2.start()
-    def motor12_goto_field(self,phi,theta):
-        self.macro1() # fix the turntable and rotate the magnet
-        self.macro2(phi) # fix the magnet and rotate the turntable
-        self.macro3(theta) # fix the turntable and rotate the magnet again
-        # th1 = threading.Thread(target=stepper_worker_phi,args=(mh.getStepper(1), phi,))
-        # th2 = threading.Thread(target=stepper_worker_theta,args=(mh.getStepper(2),theta,))
-        # th1.start()
-        # th2.start()
-        # th1.join()
-        # th2.join()
-        # time.sleep(.5)
+        
+    def motor_phi_run(self,val):
+        print("Motor starts going to phi = {}!".format(val))
+        th1 = threading.Thread(target=self.motor1_run_phi,args=(val,))
+        th1.start()
+        print("Motor is done!")
+        
+    def motor_theta_run(self,val):
+        print("Motor starts going to theta = {}!".format(val))
+        th2 = threading.Thread(target=self.motor2_run_theta,args=(val,))
+        th2.start()
+        print("Motor is done!")
+        
+    def motor_phi_theta_run(self,phi_cmd,theta_cmd):
+        print("Motor starts going to phi = {} theta = {}!".format(phi_cmd,theta_cmd))
+        while True:
+            th1 = threading.Thread(target=self.motor1_run_phi,args=(phi_cmd,))
+            th2 = threading.Thread(target=self.motor2_run_theta,args=(theta_cmd,))
+            th1.start()
+            th2.start()
+            th1.join()
+            th2.join()
+            if abs(phi_cmd - self.sensor.phi) < self.TOL_PHI and abs(theta_cmd - self.sensor.theta) < self.TOL_THETA:
+                break
+            time.sleep(.5)
+        print("Motord are done!")

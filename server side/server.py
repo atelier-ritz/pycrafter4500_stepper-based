@@ -3,7 +3,7 @@ import threading
 import time
 
 class Server(object):
-    def __init__(self,motormanager,host='192.168.31.123',port=9997):
+    def __init__(self,motormanager,host='192.168.31.118',port=9997):
         self.host = host
         self.port = port
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -51,6 +51,7 @@ class Server(object):
                     print("[Received] {} - {}".format(address, command))
                     if not command  == ['']:
                         commandList = self.str2list(command)
+                        print(commandList)
                         self.analyzecmd(commandList)
                     # self.client[0][0].sendto('received'.encode(), self.client[0][1])
 
@@ -79,5 +80,9 @@ class Server(object):
             mm.motor1_run(int(cmd[1]),int(cmd[2]))
         if cmd[0] == 'motorgo2':
             mm.motor2_run(int(cmd[1]),int(cmd[2]))
-        if cmd[0] == 'motor12goto':
-            mm.motor12_goto_field(int(cmd[1]),int(cmd[2]))
+        if cmd[0] == 'phigo':
+            mm.motor_phi_run(int(cmd[1]))
+        if cmd[0] == 'thetago':
+            mm.motor_theta_run(int(cmd[1]))
+        if cmd[0] == 'fieldgo':
+            mm.motor_phi_theta_run(int(cmd[1]),int(cmd[2]))
