@@ -85,4 +85,4 @@ class Server(object):
         if cmd[0] == 'thetago':
             mm.motor_theta_run(int(cmd[1]))
         if cmd[0] == 'fieldgo':
-            mm.motor_phi_theta_run(int(cmd[1]),int(cmd[2]))
+            mm.motor_toField_run(int(cmd[1]),int(cmd[2]))
