@@ -12,6 +12,7 @@ class Server(object):
         self.sock.listen(1) # backlog: specifies the maximum number of queued connections
         self.client = [] # [con, address]
         self.mm = motormanager
+
     def str2list(self,commandStr):
         return commandStr.split(',')
     def start(self):
@@ -57,19 +58,6 @@ class Server(object):
 
     def analyzecmd(self,cmd):
         mm = self.mm
-##        if cmd[0] == 'motorGoAndTouch':
-##            th1 = threading.Thread(target=stepper_worker,
-##                                    args=(mh.getStepper(1), int(cmd[1]), int(cmd[2]),
-##                                    Adafruit_MotorHAT.SINGLE,))
-##            th2 = threading.Thread(target=stepper_worker,
-##                                    args=(mh.getStepper(2), int(cmd[3]), int(cmd[4]),
-##                                    Adafruit_MotorHAT.SINGLE,))
-##            th1.start()
-##            th2.start()
-##            th1.join()
-##            th2.join()
-##            time.sleep(.5)
-##            svr.client[0][0].sendto('Motor is done!'.encode(), svr.client[0][1])
         if cmd[0] == 'powerOn':
             mm.power_on()
         if cmd[0] == 'powerOff':
@@ -77,12 +65,16 @@ class Server(object):
         if cmd[0] == 'setparam':
             mm.set_param(int(cmd[3]),int(cmd[4]),int(cmd[1]),int(cmd[2]))
         if cmd[0] == 'motorgo1':
-            mm.motor1_run(int(cmd[1]),int(cmd[2]))
+            mm.motor_run(1,int(cmd[1]),int(cmd[2]),wait=False)
         if cmd[0] == 'motorgo2':
-            mm.motor2_run(int(cmd[1]),int(cmd[2]))
+            mm.motor_run(2,int(cmd[1]),int(cmd[2]),wait=False)
         if cmd[0] == 'phigo':
-            mm.motor_phi_run(int(cmd[1]))
+            mm.motor1_toPhi(int(cmd[1]))
         if cmd[0] == 'thetago':
-            mm.motor_theta_run(int(cmd[1]))
+            mm.motor2_toTheta(int(cmd[1]))
         if cmd[0] == 'fieldgo':
-            mm.motor_toField_run(int(cmd[1]),int(cmd[2]))
+            mm.motor12_choose_strategy(int(cmd[1]),int(cmd[2]))
+        if cmd[0] == 'setphisingularity':
+            mm.set_phiSingularity(int(cmd[1]))
+        if cmd[0] == 'macro1':
+            mm.macro1()

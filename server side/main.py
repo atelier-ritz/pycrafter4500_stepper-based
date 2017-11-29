@@ -10,6 +10,7 @@ mh = Adafruit_MotorHAT()
 sensor = TLV493D()
 mm = MotorManager(mh,sensor)
 svr = Server(mm)
+mm.svr = svr
 
 if __name__ == "__main__":
     svr.start()

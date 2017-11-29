@@ -33,9 +33,11 @@ class TLV493D():
                y_bit = (buffer[1] << 4) + (buffer[4] & 0x0f)
                z_bit = (buffer[2] << 4) + (buffer[5] & 0x0f)
                x_mT = self.bit2mT(x_bit)
-               y_mT = self.bit2mT(y_bit)
+               y_mT = -self.bit2mT(y_bit) # the sensor is flipped upside down
                z_mT = self.bit2mT(z_bit)
                self.field = [x_mT,y_mT,z_mT]
+               if x_mT ==0 and y_mT == 0 and z_mT == 0:
+                    continue
                self.mag = math.sqrt(x_mT**2 + y_mT**2 + z_mT**2)
                self.phi = math.atan2(y_mT,x_mT) / math.pi * 180
                self.theta = math.acos(z_mT/self.mag) / math.pi * 180
@@ -43,7 +45,9 @@ class TLV493D():
 
 if __name__ == "__main__":
      sensor = TLV493D()
-##     for i in range(5000):
+     for i in range(5000):
+          print('loop')
+
 ##          sensor.update()
 ##          print(sensor.field)
 ##          print('magnitude{}'.format(sensor.mag))
