@@ -122,35 +122,6 @@
      </property>
     </widget>
    </widget>
-   <widget class="QGroupBox" name="groupBox_3">
-    <property name="geometry">
-     <rect>
-      <x>0</x>
-      <y>320</y>
-      <width>201</width>
-      <height>351</height>
-     </rect>
-    </property>
-    <property name="title">
-     <string>Available commands</string>
-    </property>
-    <widget class="QLabel" name="label_3">
-     <property name="geometry">
-      <rect>
-       <x>20</x>
-       <y>40</y>
-       <width>161</width>
-       <height>431</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;wait(n): wait n seconds&lt;/p&gt;&lt;p&gt;gimbal(a, b): move the gimbal and wait until it finishes. a-&amp;gt; roll, b-&amp;gt; pitch&lt;/p&gt;&lt;p&gt;rect(x, y, w, h): register a rectangle on the canvas. 0 &amp;lt;= x,y,w,h &amp;lt;=1&lt;/p&gt;&lt;p&gt;show(_): plot all rectangles on canvas&lt;/p&gt;&lt;p&gt;cure(_): turn on the projector. It runs with the parameters in config&lt;/p&gt;&lt;p&gt;//: comments. won't be evaluated.&lt;/p&gt;&lt;p&gt;variable_name = value: assign valuables. These variables, together with +, -, *, and /, can be used as arguments in a function.&lt;br/&gt;&lt;/p&gt;&lt;p&gt;Ctrl + N: new editor&lt;/p&gt;&lt;p&gt;Ctrl + S: save editor&lt;/p&gt;&lt;p&gt;Ctrl + O: open editor&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-     </property>
-     <property name="wordWrap">
-      <bool>true</bool>
-     </property>
-    </widget>
-   </widget>
    <widget class="QGroupBox" name="groupBox_4">
     <property name="geometry">
      <rect>
@@ -307,6 +278,88 @@
      </property>
      <property name="text">
       <string>Run both</string>
+     </property>
+    </widget>
+   </widget>
+   <widget class="QGroupBox" name="groupBox_3">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>310</y>
+      <width>201</width>
+      <height>81</height>
+     </rect>
+    </property>
+    <property name="title">
+     <string>Stepper motor config</string>
+    </property>
+    <widget class="QWidget" name="">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>10</y>
+       <width>181</width>
+       <height>59</height>
+      </rect>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout">
+      <item>
+       <widget class="QLabel" name="label_3">
+        <property name="text">
+         <string>Azimuth angle at singularity points</string>
+        </property>
+        <property name="wordWrap">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout">
+        <item>
+         <widget class="QSpinBox" name="spb_phi_at_singularity">
+          <property name="minimum">
+           <number>-180</number>
+          </property>
+          <property name="maximum">
+           <number>180</number>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="btn_phi_at_singularity">
+          <property name="text">
+           <string>Set</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </widget>
+   </widget>
+   <widget class="QGroupBox" name="groupBox_6">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>390</y>
+      <width>201</width>
+      <height>80</height>
+     </rect>
+    </property>
+    <property name="title">
+     <string>Macro</string>
+    </property>
+    <widget class="QPushButton" name="btn_macro1">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>20</y>
+       <width>75</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Macro 1 Run</string>
      </property>
     </widget>
    </widget>

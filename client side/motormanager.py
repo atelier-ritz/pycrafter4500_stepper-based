@@ -26,6 +26,13 @@ class MotorManager(object):
     def magneticFieldGo(self,phi,theta):
         command = 'fieldgo,{},{}'.format(phi,theta)
         self._sendCommand(command)
+    def setPhiSingularity(self,phi):
+        command = 'setphisingularity,{}'.format(phi)
+        self._sendCommand(command)
+    def macro1(self):
+        command = 'macro1'
+        self._sendCommand(command)
+
     def setParam(self,rpm1,rpm2,stepperrev1,stepperrev2):
         command = 'setparam,{},{},{},{}'.format(rpm1,rpm2,stepperrev1,stepperrev2)
         self._sendCommand(command)

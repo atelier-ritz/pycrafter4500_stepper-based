@@ -13,7 +13,7 @@ class Client(object):
         handle_thread = threading.Thread(target=self._handler, args=(self.sock,), daemon=True)
         handle_thread.start()
         self.sock.sendall(data.encode('utf-8'))
-        if 'motorGoAndTouch' in data:
+        if 'field' in data:
             self.isBusy = True
     def _handler(self,sock):
         while True:

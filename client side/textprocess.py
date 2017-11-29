@@ -1,26 +1,18 @@
-from gimbal import Gimbal
 from plot import MyPlot
 # import Adafruit_GPIO.FT232H as FT232H
 import pycrafter4500
 import time
 import re
 
-# FT232H.use_FT232H()
-# ft232h = FT232H.FT232H()
-# spi1 = FT232H.SPI(ft232h, cs=8, max_speed_hz=100000, mode=0, bitorder=FT232H.MSBFIRST)
-# spi2 = FT232H.SPI(ft232h, cs=9, max_speed_hz=100000, mode=0, bitorder=FT232H.MSBFIRST)
-
-# gimbal = Gimbal(0.3,0.7,spi1,spi2)                 # initialize (yaw and pitch data)
-# gimbal.yawGoto(0)                          # initialize yaw (physically)
-# gimbal.writeSpi(1,128)                           # initialize pitch (physically)
-
 class TextProcess(object):
-    def __init__(self):
+    def __init__(self,client,mm):
         self.rect = [] # store the squares created by function "rect(x,y,w,h)"
         self.variables = {} # store the variables in the editor
         self.plot = MyPlot()
         self.exposureTime = 0
         self.intensityUV = 0
+        self.client = client
+        self.mm = mm
 
     def clear(self):
         self.rect = [] # store the squares created by function "rect(x,y,w,h)"
@@ -61,8 +53,10 @@ class TextProcess(object):
             if name == 'rect':
                 args = list(map(float, args))
                 self.rect.append([args[0],args[1],args[2],args[3]])
-            if name == 'gimbal':
-                gimbal.goto(float(args[0]),float(args[1]))
+            if name == 'field':
+                self.mm.magneticFieldGo(int(args[0]),int(args[1]))
+                while self.client.isBusy:
+                    time.sleep(.5)
             if name == 'show':
                 if self.rect:
                     self.plot.clear()

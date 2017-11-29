@@ -16,9 +16,9 @@ from PyQt5.QtWidgets import QApplication, QFileDialog, QMainWindow, QMenu, QMess
 qtCreatorFile = "mainwindow.ui"
 Ui_MainWindow, QtBaseClass = uic.loadUiType(qtCreatorFile)
 
-tp = TextProcess()
 client = Client()
 mm = MotorManager(client)
+tp = TextProcess(client,mm)
 #=========================================================
 # a class that handles the signal and callbacks of the GUI
 #=========================================================
@@ -44,7 +44,8 @@ class GUI(QMainWindow,Ui_MainWindow):
         self.btn_phi_run.clicked.connect(self.on_btn_phi_run)
         self.btn_theta_run.clicked.connect(self.on_btn_theta_run)
         self.btn_phi_theta_run.clicked.connect(self.on_btn_phi_theta_run)
-
+        self.btn_phi_at_singularity.clicked.connect(self.on_btn_phi_at_singularity)
+        self.btn_macro1.clicked.connect(self.on_btn_macro1)
     def setupCallbacksEditor(self):
         self.currentFilePath = ''
         self.btn_editor_update.clicked.connect(self.on_btn_editor_update)
@@ -135,7 +136,11 @@ class GUI(QMainWindow,Ui_MainWindow):
         phi = self.spb_phi.value()
         theta = self.spb_theta.value()
         mm.magneticFieldGo(phi,theta)
-
+    def on_btn_phi_at_singularity(self):
+        phi = self.spb_phi_at_singularity.value()
+        mm.setPhiSingularity(phi)
+    def on_btn_macro1(self):
+        mm.macro1()
     def on_btn_editor_update(self):
         tp.clear()
         tp.set_exposureTime(self.spb_LED_exposureTime.value())
