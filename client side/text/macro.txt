@@ -1,0 +1,3 @@
+macro(0)
+show(0)
+cure(0)

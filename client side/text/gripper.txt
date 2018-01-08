@@ -1,0 +1,38 @@
+// assign variables
+a = 0.18
+b = 0.05
+
+
+
+field(90,150)
+rect(b+2*a,b+4*a,a,a)
+wait(3)
+show(0)
+cure(0)
+
+
+field(-90,150)
+rect(b+2*a,b,a,a)
+wait(3)
+show(0)
+cure(0)
+
+field(90,120)
+rect(b+2*a,b+3*a,a,a)
+wait(3)
+show(0)
+cure(0)
+
+field(-90,120)
+rect(b+2*a,b+a,a,a)
+wait(3)
+show(0)
+cure(0)
+
+field(0,0)
+rect(b+2*a,b+2*a,a,a)
+wait(3)
+show(0)
+cure(0)
+
+

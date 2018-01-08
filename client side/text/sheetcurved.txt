@@ -1,0 +1,23 @@
+g=0.05
+a=0.4
+c = 0.08
+
+field(-90,90)
+rect(g,g,a,a)
+rect(g+a+c,g+a,a,a)
+wait(3)
+show(0)
+cure(0)
+
+field(90,90)
+rect(g,g+a,a,a)
+rect(g+a+c,g,a,a)
+wait(3)
+show(0)
+cure(0)
+
+field(-90,90)
+rect(g+a,g+c,c,2*a-2*c)
+wait(3)
+show(0)
+cure(0)

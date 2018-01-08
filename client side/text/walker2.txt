@@ -1,0 +1,27 @@
+// assign variables
+a = 0.25
+b = 0.2
+c = 0.3
+g = 0.05
+
+
+field(0,0)
+rect(g,g,a,a)
+rect(g+a+c,g+a+b,a,a)
+wait(3)
+show(0)
+cure(0)
+
+field(0,180)
+rect(g+a+c,g,a,a)
+rect(g,g+a+b,a,a)
+wait(3)
+show(0)
+cure(0)
+
+field(0,0)
+rect(g,g+a,2*a+c,b)
+wait(3)
+show(0)
+cure(0)
+

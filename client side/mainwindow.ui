@@ -64,6 +64,9 @@
         <property name="maximum">
          <number>255</number>
         </property>
+        <property name="value">
+         <number>90</number>
+        </property>
         <property name="displayIntegerBase">
          <number>10</number>
         </property>
@@ -80,6 +83,9 @@
        <widget class="QSpinBox" name="spb_LED_exposureTime">
         <property name="maximum">
          <number>5000</number>
+        </property>
+        <property name="value">
+         <number>800</number>
         </property>
        </widget>
       </item>
@@ -293,7 +299,7 @@
     <property name="title">
      <string>Stepper motor config</string>
     </property>
-    <widget class="QWidget" name="">
+    <widget class="QWidget" name="layoutWidget">
      <property name="geometry">
       <rect>
        <x>10</x>
