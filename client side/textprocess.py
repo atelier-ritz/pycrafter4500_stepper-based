@@ -83,12 +83,18 @@ class TextProcess(object):
             if name == 'wait':
                 time.sleep(int(args[0]))
             # macro demo
+            if name == 'gripperfour':
+                self._macro_gripper_four()
             if name == 'batchGripperTest':
                 self._macro_batch_gripper()
-            if name == 'swimmerLegacy':
+            if name == 'swimmerlegacy':
                 self._macro_fabricate_swimmer_legacy(int(args[0]))
             if name == 'swimmer':
                 self._macro_fabricate_swimmer(int(args[0]))
+            if name == 'fivepixelswimmer':
+                self._macro_fabricate_five_pixel_swimmer()
+            if name == 'sevenpixelswimmer':
+                self._macro_fabricate_seven_pixel_swimmer()
             if name == 'swimmerb':
                 self._macro_batch_fabricate_swimmer(int(args[0]))
             if name == 'geit':
@@ -198,6 +204,107 @@ class TextProcess(object):
         self._show()
         self._cure()
 
+    def _macro_fabricate_five_pixel_swimmer(self):
+        width = 0.35
+        length = 1.0
+        lengthPerPixel = length/5
+
+        self.mm.magneticFieldGo(90,90)
+        while self.client.isBusy:
+            time.sleep(.5)
+        self.mm.motorgo(1,100)
+        time.sleep(6)
+        self.rect.append([0.5-length/2+lengthPerPixel*1,0.5-width/2,lengthPerPixel,width])
+        self._show()
+        self._cure()
+
+        self.mm.motorgo(1,200)
+        time.sleep(9)
+        self.rect.append([0.5-length/2+lengthPerPixel*3,0.5-width/2,lengthPerPixel,width])
+        self._show()
+        self._cure()
+
+        self.mm.motorgo(1,200)
+        time.sleep(6)
+
+        self.mm.magneticFieldGo(0,90)
+        while self.client.isBusy:
+            time.sleep(.5)
+        time.sleep(3)
+        self.rect.append([0.5-length/2+lengthPerPixel*0,0.5-width/2,lengthPerPixel,width])
+        self.rect.append([0.5-length/2+lengthPerPixel*4,0.5-width/2,lengthPerPixel,width])
+        self._show()
+        self._cure()
+
+        self.mm.motorgo(1,200)
+        time.sleep(9)
+        self.rect.append([0.5-length/2+lengthPerPixel*2,0.5-width/2,lengthPerPixel,width])
+        self._show()
+        self._cure()
+        self.mm.motorgo(1,200)
+
+    def _macro_fabricate_seven_pixel_swimmer(self):
+        width = 0.25
+        length = 0.9
+        lengthPerPixel = length/7
+
+        self.mm.magneticFieldGo(0,90)
+        while self.client.isBusy:
+            time.sleep(.5)
+        time.sleep(3)
+        self.rect.append([0.5-length/2+lengthPerPixel*6,0.5-width/2,lengthPerPixel,width])
+        self.rect.append([0.5-length/2+lengthPerPixel*0,0.5-width/2,lengthPerPixel,width])
+        self._show()
+        self._cure()
+
+        self.mm.motorgo(1,210)
+        time.sleep(10)
+        self.rect.append([0.5-length/2+lengthPerPixel*3,0.5-width/2,lengthPerPixel,width])
+        self._show()
+        self._cure()
+        self.mm.motorgo(1,-210)
+        time.sleep(10)
+
+        self.mm.motorgo(1,-52)
+        time.sleep(10)
+        self.rect.append([0.5-length/2+lengthPerPixel*5,0.5-width/2,lengthPerPixel,width])
+        self._show()
+        self._cure()
+
+        self.mm.motorgo(1,210)
+        time.sleep(10)
+        self.rect.append([0.5-length/2+lengthPerPixel*2,0.5-width/2,lengthPerPixel,width])
+        self._show()
+        self._cure()
+        self.mm.motorgo(1,-210)
+        time.sleep(10)
+
+        self.mm.magneticFieldGo(0,90)
+        while self.client.isBusy:
+            time.sleep(.5)
+        self.mm.motorgo(1,-142)
+        time.sleep(10)
+        self.rect.append([0.5-length/2+lengthPerPixel*4,0.5-width/2,lengthPerPixel,width])
+        self._show()
+        self._cure()
+
+        self.mm.motorgo(1,197)
+        time.sleep(9)
+        self.rect.append([0.5-length/2+lengthPerPixel*1,0.5-width/2,lengthPerPixel,width])
+        self._show()
+        self._cure()
+        self.mm.motorgo(1,-197)
+        time.sleep(9)
+        self.mm.motorgo(1,142)
+        time.sleep(10)
+
+        self.mm.magneticFieldGo(0,90)
+        while self.client.isBusy:
+            time.sleep(.5)
+        time.sleep(3)
+        # self.rect.append([0.5-length/2+lengthPerPixel*0,0.5-width/2,lengthPerPixel,width])
+        # self._show()
+        # self._cure()
 
     def _macro_fabricate_swimmer(self,nPixels): # doesn't cure in order
         pixel = nPixels
@@ -209,6 +316,9 @@ class TextProcess(object):
         width = 0.25
         length = 0.9
         lengthPerPixel = length/pixel
+        self.mm.magneticFieldGo(0,90)
+        while self.client.isBusy:
+            time.sleep(.5)
         for i in range(steps):
             self.rect.append([i*lengthPerPixel,0.5-width/2,lengthPerPixel,width])
             self._show()
@@ -243,6 +353,7 @@ class TextProcess(object):
             self._cure()
             self.mm.motorgo(1,int(stepsPerPixel))
             time.sleep(waitPerPixel)
+
     def _macro_batch_fabricate_swimmer(self,nPixels): # doesn't cure in order
         print(2)
         pixel = nPixels
@@ -269,6 +380,108 @@ class TextProcess(object):
             self.mm.motorgo(1,-int(stepsPerPixel)*(steps-1))
             time.sleep(waitPerPixel*(steps-1))
         self.mm.motorgo(1,int(stepsPerPixel))
+
+
+    def _macro_gripper(self):
+        a = 0.24
+
+        self.mm.magneticFieldGo(0,90)
+        while self.client.isBusy:
+            time.sleep(.5)
+        self.mm.motorgo(1,100)
+        time.sleep(6)
+        self.rect.append([0.5-0.5*a,0.5-0.5*a,a,a])
+        self._show()
+        self._cure()
+
+        self.mm.magneticFieldGo(90,120)
+        while self.client.isBusy:
+            time.sleep(.5)
+        time.sleep(6)
+        self.rect.append([0.5-0.5*a,0.5+0.5*a,a,a])
+        self._show()
+        self._cure()
+
+        self.mm.magneticFieldGo(270,120)
+        while self.client.isBusy:
+            time.sleep(.5)
+        time.sleep(6)
+        self.rect.append([0.5-0.5*a,0.5-1.5*a,a,a])
+        self._show()
+        self._cure()
+
+        self.mm.magneticFieldGo(90,150)
+        while self.client.isBusy:
+            time.sleep(.5)
+        time.sleep(6)
+        self.rect.append([0.5-0.5*a,0.5+1.5*a,a,a])
+        self._show()
+        self._cure()
+
+        self.mm.magneticFieldGo(270,150)
+        while self.client.isBusy:
+            time.sleep(.5)
+        time.sleep(6)
+        self.rect.append([0.5-0.5*a,0.5-2.5*a,a,a])
+        self._show()
+        self._cure()
+
+
+
+    def _macro_gripper_four(self):
+        a = 0.24
+
+        self.mm.magneticFieldGo(0,0)
+        while self.client.isBusy:
+            time.sleep(.5)
+        time.sleep(3)
+        self.rect.append([0.5-0.5*a,0.5-0.5*a,a,a])
+        self._show()
+        self._cure()
+
+        self.mm.motorgo(1,200)
+        time.sleep(12)
+        self._polygon_append([0.5-1.5*a,0.5-1.5*a,0.5-2*a,0.5-0.5*a,0.5+0.5*a,0.5])
+        self._polygon_append([0.5+1.5*a,0.5+1.5*a,0.5+2*a,0.5-0.5*a,0.5+0.5*a,0.5])
+        self._polygon_append([0.5-0.5*a,0.5+0.5*a,0.5,0.5-1.5*a,0.5-1.5*a,0.5-2*a])
+        self._polygon_append([0.5-0.5*a,0.5+0.5*a,0.5,0.5+1.5*a,0.5+1.5*a,0.5+2*a])
+        self._show()
+        self._cure()
+        self.mm.motorgo(1,200)
+        time.sleep(9)
+
+        self.mm.magneticFieldGo(0,120)
+        while self.client.isBusy:
+            time.sleep(.5)
+        time.sleep(3)
+        self.rect.append([0.5-1.5*a,0.5-0.5*a,a,a])
+        self._show()
+        self._cure()
+
+        self.mm.motorgo(1,200)
+        time.sleep(12)
+        self.rect.append([0.5+0.5*a,0.5-0.5*a,a,a])
+        self._show()
+        self._cure()
+        self.mm.motorgo(1,200)
+        time.sleep(9)
+
+        self.mm.magneticFieldGo(90,120)
+        while self.client.isBusy:
+            time.sleep(.5)
+        time.sleep(3)
+        self.rect.append([0.5-0.5*a,0.5+0.5*a,a,a])
+        self._show()
+        self._cure()
+
+        self.mm.motorgo(1,200)
+        time.sleep(12)
+        self.rect.append([0.5-0.5*a,0.5-1.5*a,a,a])
+        self._show()
+        self._cure()
+        self.mm.motorgo(1,200)
+        time.sleep(9)
+
     def _macro_batch_gripper(self):
         a = 0.035
         g = 0.17
@@ -281,6 +494,7 @@ class TextProcess(object):
                 self.rect.append([xOff,yOff+a,a,a])
                 self.rect.append([xOff+2*a,yOff+a,a,a])
                 self.rect.append([xOff+a,yOff+2*a,a,a])
+
     def _macro_fabricate_pedal(self):
         x0 = 0
         y0 = 0
@@ -315,6 +529,14 @@ class TextProcess(object):
                 yOff = dy * j
                 self.rect.append([xOff+xo,yOff+yo,width,height])
 
+    def _polygon_append(self,array):
+        args = list(map(float, array))
+        mid = int(len(args)/2)
+        x = args[:mid]
+        y = args[mid:]
+        vertices = np.column_stack((x,y))
+        item = matplotlib.patches.Polygon(vertices,closed=True,color='white')
+        self.polygon.append(item)
     def _show(self):
         empty = self.rect == [] and self.cir == [] and self.polygon == []
         if not empty:
