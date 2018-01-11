@@ -41,8 +41,6 @@ class GUI(QMainWindow,Ui_MainWindow):
     def setupMotors(self):
         self.btn_motor1_run.clicked.connect(self.on_btn_motor1_run)
         self.btn_motor2_run.clicked.connect(self.on_btn_motor2_run)
-        self.btn_phi_run.clicked.connect(self.on_btn_phi_run)
-        self.btn_theta_run.clicked.connect(self.on_btn_theta_run)
         self.btn_phi_theta_run.clicked.connect(self.on_btn_phi_theta_run)
         self.btn_phi_at_singularity.clicked.connect(self.on_btn_phi_at_singularity)
         self.btn_macro1.clicked.connect(self.on_btn_macro1)
