@@ -68,12 +68,8 @@ class Server(object):
             mm.motor_run(1,int(cmd[1]),int(cmd[2]),wait=False)
         if cmd[0] == 'motorgo2':
             mm.motor_run(2,int(cmd[1]),int(cmd[2]),wait=False)
-        if cmd[0] == 'phigo':
-            mm.motor1_toPhi(int(cmd[1]))
-        if cmd[0] == 'thetago':
-            mm.motor2_toTheta(int(cmd[1]))
         if cmd[0] == 'fieldgo':
-            mm.motor12_choose_strategy(int(cmd[1]),int(cmd[2]))
+            mm.motor12_goto_field(int(cmd[1]),int(cmd[2]))
         if cmd[0] == 'setphisingularity':
             mm.set_phiSingularity(int(cmd[1]))
         if cmd[0] == 'macro1':

@@ -11,6 +11,13 @@ def fieldDeg2shaftDeg(val): # the single magnetic dipole model is used to calcul
     shaftDeg = shaftRad / math.pi * 180
     return shaftDeg
 
+def reverseDir(direction):
+    if direction == 1:
+        direction = 2
+    else:
+        direction = 1
+    return direction
+
 def getSingularityAngle():
     return 15
 
@@ -20,7 +27,7 @@ def getTolPhi():
 def getTolTheta():
     return 1
 
-def getState(deg):
+def getStateTheta(deg):
     if deg < getSingularityAngle():
         return 1
     elif deg >  180 - getSingularityAngle():
@@ -28,31 +35,15 @@ def getState(deg):
     else:
         return 0
 
-# def getTolThetaSgl(theta_cmd):
-#     state = getState(theta_cmd)
-#     if state == 0:
-#         return getTolTheta()
-#     else:
-#         if state == 2:
-#             theta_cmd = 180 - theta_cmd
-#         # the closer to the singularity is the goal, the more we should loosen the tolerance
-#         # it is selected such that
-#         # model tolerance(theta_cmd) = exp(a * theta_cmd +b),
-#         # where tolerance(getSingularityAngle) = TOL_THETA, tolerance(0) = k * TOL_THETA
-#         k = 3
-#         b = math.log(k * getTolTheta())
-#         a = (math.log(getTolTheta()) - b) / getSingularityAngle()
-#         tol = math.exp(a * theta_cmd + b)
-#         return tol
-
 class MotorManager():
     def __init__(self,controller,sensor):
         self.controller = controller
         self.sensor = sensor
         self.degperstep = 0.9
-        self.lastState = getState(sensor.theta)
+        self.thetaMode = 1 #1:S pole is located at x+   -1: N pole is located at x+
+        self.lastStateTheta = getStateTheta(sensor.theta) # 0: 15-165 1:0-15 2:165-180
         self.svr = None
-        self.phiSingularity = 0
+        self.phiSingularity = 0 # always go to phi=0 when entering singularity at theta = 0-15
 
     def set_param(self,stepPerRev1,stepPerRev2,spd1,spd2):
         mystepper1 = self.controller.getStepper(1)
@@ -80,30 +71,51 @@ class MotorManager():
                                     args=(self.controller.getStepper(motorId), step, direction,))
             thread.start()
 
+    def _shiftThetaMode(self):
+        self.thetaMode *= -1
+        numsteps = 200 # 180 deg
+        direction = 1
+        self.motor_run(2,numsteps,direction)
+
 #============================================
 # advanced driving with sensor feedback
 #============================================
-    def motor1_toPhi(self,phi_cmd):
-        tol = getTolPhi()
-        while True:
-            phi_msr = self.sensor.phi # [-180,180] deg
-            error = phi_cmd - phi_msr
-            if error < tol and error > -tol:
-                break
-            if error <= tol:
-                direction = 1
-            else:
-                direction = 2
-            numsteps = max(int(self.degperstep * abs(error)),1)
-            self.motor_run(1,numsteps,direction)
-            time.sleep(.3)
-
-    def motor2_toTheta(self,theta_cmd):
-        state = getState(theta_cmd)
-        if state == 0:
-            tol = getTolTheta()
+    def motor1_toPhi(self,phi_cmd,tol=getTolPhi()):
+        phi_cmd = phi_cmd % 360 # convert to 0-360 deg
+        thetaMode = self.thetaMode
+        if thetaMode  == 1:
+            if phi_cmd > 180:
+                phi_cmd -= 360
+            while True:
+                phi_msr = self.sensor.phi # [-90,90] deg
+                error = phi_cmd - phi_msr
+                if error < tol and error > -tol:
+                    break
+                if error <= tol:
+                    direction = 1
+                else:
+                    direction = 2
+                numsteps = max(int(self.degperstep * abs(error)),1)
+                self.motor_run(1,numsteps,direction)
+                time.sleep(.3)
         else:
-            tol = getTolThetaSgl(theta_cmd)
+            while True:
+                phi_msr = self.sensor.phi # [-180,-90]or[90,180] deg
+                if phi_msr < 0:
+                    phi_msr += 360
+                error = phi_cmd - phi_msr
+                if error < tol and error > -tol:
+                    break
+                if error <= tol:
+                    direction = 1
+                else:
+                    direction = 2
+                numsteps = max(int(self.degperstep * abs(error)),1)
+                self.motor_run(1,numsteps,direction)
+                time.sleep(.3)
+
+    def motor2_toTheta(self,theta_cmd,tol=getTolTheta()):
+        thetaMode = self.thetaMode
         while True:
             theta_msr = self.sensor.theta # [0,180] deg
             errorField = theta_cmd - theta_msr
@@ -113,6 +125,8 @@ class MotorManager():
                 direction = 1
             else:
                 direction = 2
+            if thetaMode == -1:
+                direction = reverseDir(direction)
             errorShaft = fieldDeg2shaftDeg(theta_cmd) - fieldDeg2shaftDeg(theta_msr)
             numsteps = max(int(self.degperstep * abs(errorShaft)),1)
             self.motor_run(2,numsteps,direction)
@@ -121,52 +135,67 @@ class MotorManager():
 #============================================
 # advanced control that considers singularities
 #============================================
-# any theta < 15 isconsidered theta = 0
-# any theta > 165 is considered theta  = 180
-    def motor12_choose_strategy(self,phi_cmd,theta_cmd):
+
+    def motor12_goto_field(self,phi_cmd,theta_cmd):
+        phi_cmd = phi_cmd % 360 # convert to 0-360 deg
         print("Motors start going to phi = {} theta = {}!".format(phi_cmd,theta_cmd))
-        nextState = getState(theta_cmd)
-        # leave singularity
-        if not self.lastState == 0:
-            self.motor_run(2,30,self.lastState)
+        thetaMode = self.thetaMode
+        #==================================================
+        # left singularity if theta is in [0,15]or[165,180]
+        #==================================================
+        if not self.lastStateTheta == 0:
+            direction = self.lastStateTheta
+            if thetaMode == -1:
+                direction = reverseDir(direction)
+            self.motor_run(2,30,direction)
             time.sleep(1)
-            print('left singularity')
-        # go to the destination
+        #==================================================
+        # shift thetaMode if necessary
+        #==================================================
+        if phi_cmd > 90 and phi_cmd < 270:
+            if self.thetaMode == 1:
+                self._shiftThetaMode()
+        else:
+            if self.thetaMode == -1:
+                self._shiftThetaMode()
+        #==================================================
+        # any theta < 15 isconsidered theta = 0
+        # any theta > 165 is considered theta  = 180
+        #==================================================
+        nextState = getStateTheta(theta_cmd)
         if nextState == 0:
             self.motor12_gotoField(phi_cmd,theta_cmd)
-            self.lastState = 0
+            self.lastStateTheta = 0
         if nextState == 1:
-            self.motor12_gotoField(self.phiSingularity,90)
+            self.motor12_gotoField(self.phiSingularity,90,0.4,0.4)
             self.motor_run(2,100,2)
-            # self.motor12_approachSingularity(1)
-            self.lastState = 1
+            self.lastStateTheta = 1
         if nextState == 2:
-            self.motor12_gotoField(self.phiSingularity,90)
+            self.motor12_gotoField(self.phiSingularity,90,0.4,0.4)
             self.motor_run(2,100,1)
-            # self.motor12_approachSingularity(2)
-            self.lastState = 2
-        print('done')
+            self.lastStateTheta = 2
+        #==================================================
+        # send finish flag to the client
+        #==================================================
         self.svr.client[0][0].sendto('Motor is done!'.encode(), self.svr.client[0][1])
 
-    def motor12_gotoField(self,phi_cmd,theta_cmd): # far away from the singularity points
+    def motor12_gotoField(self,phi_cmd,theta_cmd,tolPhi=getTolPhi(),tolTheta=getTolTheta()): # far away from the singularity points
         while True:
-            th1 = threading.Thread(target=self.motor1_toPhi,args=(phi_cmd,))
-            th2 = threading.Thread(target=self.motor2_toTheta,args=(theta_cmd,))
+            th1 = threading.Thread(target=self.motor1_toPhi,args=(phi_cmd,tolPhi,))
+            th2 = threading.Thread(target=self.motor2_toTheta,args=(theta_cmd,tolTheta,))
             th1.start()
             th2.start()
             th1.join()
             th2.join()
-            if abs(phi_cmd - self.sensor.phi) < getTolTheta() and abs(theta_cmd - self.sensor.theta) < getTolTheta():
+            if phi_cmd > 180: phi_cmd = phi_cmd - 360
+            if abs(phi_cmd - self.sensor.phi) < tolPhi and abs(theta_cmd - self.sensor.theta) < tolTheta:
                 break
             time.sleep(1)
     #============================================
     # testing
     #============================================
     def macro1(self):
-        theta = []
-        self.motor12_choose_strategy(30,90)
-        for i in range(50):
-            self.motor_run(2,2,1)
-            time.sleep(1)
-            theta.append(self.sensor.theta)
-            print(theta)
+        self.thetaMode *= -1
+        numsteps = 200 # 180 deg
+        direction = 1
+        self.motor_run(2,numsteps,direction)

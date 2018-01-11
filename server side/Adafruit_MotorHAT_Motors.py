@@ -149,7 +149,7 @@ class Adafruit_StepperMotor:
         lateststep = 0
         if (stepstyle == Adafruit_MotorHAT.INTERLEAVE):
             s_per_s = s_per_s / 2.0
-        print("{} sec per step".format(s_per_s))
+##        print("{} sec per step".format(s_per_s))
         if (stepstyle == Adafruit_MotorHAT.MICROSTEP):
             s_per_s /= self.MICROSTEPS
             steps *= self.MICROSTEPS
