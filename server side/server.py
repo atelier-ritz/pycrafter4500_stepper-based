@@ -72,5 +72,9 @@ class Server(object):
             mm.motor12_goto_field(int(cmd[1]),int(cmd[2]))
         if cmd[0] == 'setphisingularity':
             mm.set_phiSingularity(int(cmd[1]))
-        if cmd[0] == 'macro1':
-            mm.macro1()
+        if cmd[0] == 'oscPitch':
+            mm.oscPitch()
+        if cmd[0] == 'oscYaw':
+            mm.oscYaw()
+        if cmd[0] == 'randomize':
+            mm.randomize(int(cmd[1]))

@@ -1,9 +1,14 @@
+
 from Adafruit_MotorHAT_Motors import Adafruit_MotorHAT, Adafruit_StepperMotor
 import atexit
 import RPi.GPIO as GPIO
 import threading
 import time
 import math
+
+GPIO.setmode(GPIO.BCM)
+GPIO.setwarnings(False)
+GPIO.setup(20,GPIO.OUT)
 
 def fieldDeg2shaftDeg(val): # the single magnetic dipole model is used to calculate theta vs alpha_2
     fieldRad = val / 180 * math.pi
@@ -55,6 +60,12 @@ class MotorManager():
 
     def set_phiSingularity(self,phi):
         self.phiSingularity = phi
+
+    def power_on(self):
+        GPIO.output(20,False)
+
+    def power_off(self):
+        GPIO.output(20,True)
 #============================================
 # basic driving without sensor feedback
 #============================================
@@ -167,12 +178,12 @@ class MotorManager():
             self.motor12_gotoField(phi_cmd,theta_cmd)
             self.lastStateTheta = 0
         if nextState == 1:
-            self.motor12_gotoField(self.phiSingularity,90,0.4,0.4)
-            self.motor_run(2,100,2)
+            self.motor12_gotoField(self.phiSingularity,90,0.8,0.8)
+            self.motor_run(2,98,2)
             self.lastStateTheta = 1
         if nextState == 2:
-            self.motor12_gotoField(self.phiSingularity,90,0.4,0.4)
-            self.motor_run(2,100,1)
+            self.motor12_gotoField(self.phiSingularity,90,0.8,0.8)
+            self.motor_run(2,109,1)
             self.lastStateTheta = 2
         #==================================================
         # send finish flag to the client
@@ -187,15 +198,74 @@ class MotorManager():
             th2.start()
             th1.join()
             th2.join()
-            if phi_cmd > 180: phi_cmd = phi_cmd - 360
-            if abs(phi_cmd - self.sensor.phi) < tolPhi and abs(theta_cmd - self.sensor.theta) < tolTheta:
+            errorPhi = min(abs(phi_cmd - self.sensor.phi),abs(phi_cmd - 360 - self.sensor.phi))
+            if errorPhi < tolPhi and abs(theta_cmd - self.sensor.theta) < tolTheta:
                 break
             time.sleep(1)
     #============================================
-    # testing
+    # oscillation
     #============================================
-    def macro1(self):
-        self.thetaMode *= -1
-        numsteps = 200 # 180 deg
-        direction = 1
-        self.motor_run(2,numsteps,direction)
+    def motor1_randomize(self):
+        self.motor_run(2,200,1)
+        self.motor_run(2,200,-1)
+    def motor2_randomize(self):
+        self.motor_run(1,200,1)
+        self.motor_run(1,200,-1)
+
+    def randomize(self,count=1):
+        self.motor12_goto_field(90,90)
+        for i in range(count):
+            th1 = threading.Thread(target=self.motor1_randomize)
+            th2 = threading.Thread(target=self.motor2_randomize)
+            # th2 = threading.Thread(target=self.motor2_randomize,args=(time,))
+            th1.start()
+            th2.start()
+            th1.join()
+            th2.join()
+            time.sleep(1)
+            
+    def oscPitch(self):
+        self.motor_run(2,10,1)
+        time.sleep(1)
+        self.motor_run(2,20,2)
+        time.sleep(1)
+        self.motor_run(2,18,1)
+        time.sleep(1)
+        self.motor_run(2,16,2)
+        time.sleep(1)
+        self.motor_run(2,14,1)
+        time.sleep(1)
+        self.motor_run(2,12,2)
+        time.sleep(1)
+        self.motor_run(2,10,1)
+        time.sleep(1)
+        self.motor_run(2,8,2)
+        time.sleep(1)
+        self.motor_run(2,6,1)
+        time.sleep(1)
+        self.motor_run(2,4,2)
+        time.sleep(1)
+        self.motor_run(2,2,1)
+
+    def oscYaw(self):
+        self.motor_run(1,10,1)
+        time.sleep(1)
+        self.motor_run(1,20,2)
+        time.sleep(1)
+        self.motor_run(1,18,1)
+        time.sleep(1)
+        self.motor_run(1,16,2)
+        time.sleep(1)
+        self.motor_run(1,14,1)
+        time.sleep(1)
+        self.motor_run(1,12,2)
+        time.sleep(1)
+        self.motor_run(1,10,1)
+        time.sleep(1)
+        self.motor_run(1,8,2)
+        time.sleep(1)
+        self.motor_run(1,6,1)
+        time.sleep(1)
+        self.motor_run(1,4,2)
+        time.sleep(1)
+        self.motor_run(1,2,1)
