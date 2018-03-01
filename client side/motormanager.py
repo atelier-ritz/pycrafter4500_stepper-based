@@ -29,10 +29,15 @@ class MotorManager(object):
     def setPhiSingularity(self,phi):
         command = 'setphisingularity,{}'.format(phi)
         self._sendCommand(command)
-    def macro1(self):
-        command = 'macro1'
+    def oscPitch(self):
+        command = 'oscPitch'
         self._sendCommand(command)
-
+    def oscYaw(self):
+        command = 'oscYaw'
+        self._sendCommand(command)
+    def randomize(self,count):
+        command = 'randomize,{}'.format(count)
+        self._sendCommand(command)
     def setParam(self,rpm1,rpm2,stepperrev1,stepperrev2):
         command = 'setparam,{},{},{},{}'.format(rpm1,rpm2,stepperrev1,stepperrev2)
         self._sendCommand(command)

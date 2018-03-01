@@ -43,7 +43,9 @@ class GUI(QMainWindow,Ui_MainWindow):
         self.btn_motor2_run.clicked.connect(self.on_btn_motor2_run)
         self.btn_phi_theta_run.clicked.connect(self.on_btn_phi_theta_run)
         self.btn_phi_at_singularity.clicked.connect(self.on_btn_phi_at_singularity)
-        self.btn_macro1.clicked.connect(self.on_btn_macro1)
+        self.btn_oscPitch.clicked.connect(self.on_btn_oscPitch)
+        self.btn_oscYaw.clicked.connect(self.on_btn_oscYaw)
+        self.btn_oscRandomize.clicked.connect(self.on_btn_oscRandomize)
     def setupCallbacksEditor(self):
         self.currentFilePath = ''
         self.btn_editor_update.clicked.connect(self.on_btn_editor_update)
@@ -137,8 +139,13 @@ class GUI(QMainWindow,Ui_MainWindow):
     def on_btn_phi_at_singularity(self):
         phi = self.spb_phi_at_singularity.value()
         mm.setPhiSingularity(phi)
-    def on_btn_macro1(self):
-        mm.macro1()
+    def on_btn_oscPitch(self):
+        mm.oscPitch()
+    def on_btn_oscYaw(self):
+        mm.oscYaw()
+    def on_btn_oscRandomize(self):
+        mm.randomize()
+
     def on_btn_editor_update(self):
         tp.clear()
         tp.set_exposureTime(self.spb_LED_exposureTime.value())

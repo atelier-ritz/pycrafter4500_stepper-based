@@ -341,7 +341,7 @@
     <property name="title">
      <string>Macro</string>
     </property>
-    <widget class="QPushButton" name="btn_macro1">
+    <widget class="QPushButton" name="btn_oscPitch">
      <property name="geometry">
       <rect>
        <x>10</x>
@@ -351,7 +351,33 @@
       </rect>
      </property>
      <property name="text">
-      <string>Macro 1 Run</string>
+      <string>OscPitch</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="btn_oscYaw">
+     <property name="geometry">
+      <rect>
+       <x>100</x>
+       <y>20</y>
+       <width>75</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>OscYaw</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="btn_oscRandomize">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>50</y>
+       <width>75</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Randomize</string>
      </property>
     </widget>
    </widget>

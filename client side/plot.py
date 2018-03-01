@@ -16,6 +16,9 @@ class MyPlot(object):
     def clear(self):
         self.addRect(0,0,1,1,'black')
 
+    def addLine(self,line,color='white'):
+        self.ax.plot(line)
+
     def addRect(self,x,y,w,h,color='white'):
         self.ax.add_patch(patches.Rectangle((x, y),width=w,height=h,color=color))
 
