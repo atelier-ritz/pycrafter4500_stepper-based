@@ -14,16 +14,20 @@ class MyPlot(object):
         plt.pause(0.005)
 
     def clear(self):
-        self.addRect(0,0,1,1,'black')
+        self.ax.lines = []          # delete all lines
+        self.addRect(0,0,1,1,'black') # delete all patches (polygons)
 
-    def addLine(self,line,color='white'):
-        self.ax.plot(line)
+    def addLine(self,x1,x2,y1,y2):
+        self.ax.plot([x1,x2],[y1,y2],'w-',linewidth=1)
 
     def addRect(self,x,y,w,h,color='white'):
         self.ax.add_patch(patches.Rectangle((x, y),width=w,height=h,color=color))
 
     def addCir(self,x,y,r,color='white'):
         self.ax.add_patch(patches.Circle((x,y),radius=r, color=color))
+
+    def addRing(self,x,y,r,w,start=0,end=360,color='white'):
+        self.ax.add_patch(patches.Wedge((x, y), r, start, end, width=w, color=color))
 
     def addPolygon(self,polygon):
         self.ax.add_patch(polygon)

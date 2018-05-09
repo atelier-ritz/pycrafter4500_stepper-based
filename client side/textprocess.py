@@ -8,8 +8,10 @@ import re
 
 class TextProcess(object):
     def __init__(self,client,mm):
+        self.line = [] # [[x1,x2,y1,y2],[],...]
         self.rect = [] # store the squares created by function "rect(x,y,w,h)"
         self.cir = [] #
+        self.ring = []
         self.polygon = []
         self.variables = {} # store the variables in the editor
         self.plot = MyPlot()
@@ -19,8 +21,10 @@ class TextProcess(object):
         self.mm = mm
 
     def clear(self):
+        self.line = []
         self.rect = [] # store the squares created by function "rect(x,y,w,h)"
         self.cir = []
+        self.ring = []
         self.polygon = []
         self.variables = {} # store the variables in the editor
 
@@ -57,16 +61,19 @@ class TextProcess(object):
                     arg = ''.join(arg)
                     args[i] = eval(arg)
             # run functions
+            # if name == 'line':
+            #     args = list(map(float, args))
+            #     x1,x2,y1,y2 = args
+            #     theta = math.atan2(y1-y2,x1-x2)
+            #     w = 0.0001
+            #     x = [x1-w*math.cos(theta),x2-w*math.cos(theta),x2+w*math.cos(theta),x1+w*math.cos(theta)]
+            #     y = [y1-w*math.sin(theta),y2-w*math.sin(theta),y2+w*math.sin(theta),y1+w*math.sin(theta)]
+            #     vertices = np.column_stack((x,y))
+            #     item = matplotlib.patches.Polygon(vertices,closed=True,color='white')
+            #     self.polygon.append(item)
             if name == 'line':
-                args = list(map(float, args))
-                x1,x2,y1,y2 = args
-                theta = math.atan2(y1-y2,x1-x2)
-                w = 0.0001
-                x = [x1-w*math.cos(theta),x2-w*math.cos(theta),x2+w*math.cos(theta),x1+w*math.cos(theta)]
-                y = [y1-w*math.sin(theta),y2-w*math.sin(theta),y2+w*math.sin(theta),y1+w*math.sin(theta)]
-                vertices = np.column_stack((x,y))
-                item = matplotlib.patches.Polygon(vertices,closed=True,color='white')
-                self.polygon.append(item)
+                self.line.append(args)
+                self._show()
             if name == 'rect':
                 args = list(map(float, args))
                 self.rect.append([args[0],args[1],args[2],args[3]])
@@ -94,10 +101,50 @@ class TextProcess(object):
             if name == 'wait':
                 time.sleep(int(args[0]))
             # macro demo
+            if name == 'sample':
+                self._macro_sample()
+            if name == 'tripod':
+                self._macro_tripod() # only has up and down magnetization in the body
+            if name == 'tripodneo':
+                self._macro_tripodneo() # has <- and -> magnetization in the body
+            if name == 'tripodthree':
+                self._macro_tripodthree()
+            if name == 'turtle':
+                self._macro_turtle()
+            if name == 'accordion':
+                self._macro_accordion(int(args[0]))
+            if name == 'capsule':
+                self._macro_capsule()
+            if name == 'capsule2':
+                self._macro_capsule_twoarm()
+            if name == 'hatch':    # latch by -> ->
+                self._macro_hatch()
+            if name == 'hatchneo': #latch by -> and <- on top of each other
+                self._macro_hatchneo()
             if name == 'gripper':
                 self._macro_gripper()
+            if name == 'gripperhinge':
+                self._macro_gripperhinge()
+            if name == 'twist':
+                self._macro_twist()
             if name == 'swimmer':
                 self._macro_swimmer()
+            if name == 'cylinderr':
+                self._macro_cylinder_r()
+            if name == 'cylindera':
+                self._macro_cylinder_a()
+            if name == 'flagella':
+                self._macro_flagella()
+            if name == 'crawler': # crawling doghnut
+                self._macro_crawler()
+            if name == 'doghnut': # buckling ring
+                self._macro_doghnut()
+            if name == 'standingman':
+                self._macro_standingman()
+            if name == 'waves':
+                self._macro_waves()
+            if name == 'fingers':
+                self._macro_fingers()
             if name == 'swimmerb':
                 self._macro_batch_swimmer()
             if name == 'oscPitch':
@@ -110,8 +157,792 @@ class TextProcess(object):
 # ==============================================================================
 # Macros
 # ==============================================================================
+    def _macro_sample(self):
+        ''' print an array of squares, triangles, and circles of different sizes '''
+        # L1 squares
+        # L2 circles
+        # L3 triangles
+        p = 0.2
+        ox1 = 0 * p
+        ox2 = 0.3 * p
+        ox3 = 0.6 * p
+        for i in range(10):
+            h = 0.09 * (0.8**i) * p
+            self.rect.append([ox1,i*0.1,h,h])
+        for i in range(10):
+            r = 0.09 * 0.5 * (0.8**i) * p
+            self.cir.append([ox2+r,i*0.1+r,r])
+        for i in range(10):
+            a = 0.09 * (0.8**i) * p
+            x = [ox3,ox3,ox3 + 1.732*0.5*a]
+            y = [i*0.1,i*0.1+a,i*0.1+0.5*a]
+            vertices = np.column_stack((x,y))
+            item = matplotlib.patches.Polygon(vertices,closed=True,color='white')
+            self.polygon.append(item)
+        self._show()
+        self._cure(800)
+
+    def _macro_turtle(self):
+        p = 0.4
+        w = 0.25 * p
+        l_leg = 0.35 * p
+        l_body = 0.2 * p
+        curingOrder = [5,1,6,3,2,7,4,8]
+
+        # ''' boundaries '''
+        # self.line.append([0.5-0.5*w,0.5+0.5*w,0.5-0.5*l3-l2-l1,0.5-0.5*l3-l2-l1])
+        # self.line.append([0.5-0.5*w,0.5+0.5*w,0.5+0.5*l3+l2+l1,0.5+0.5*l3+l2+l1])
+        # self.line.append([0.5-0.5*w,0.5-0.5*w,0.5-0.5*l3-l2-l1,0.5+0.5*l3+l2+l1])
+        # self.line.append([0.5+0.5*w,0.5+0.5*w,0.5-0.5*l3-l2-l1,0.5+0.5*l3+l2+l1])
+        # self.line.append([0.5-0.5*w,0.5+0.5*w,0.5-0.5*l3-l2   ,0.5-0.5*l3-l2   ])
+        # self.line.append([0.5-0.5*w,0.5+0.5*w,0.5-0.5*l3      ,0.5-0.5*l3      ])
+        # self.line.append([0.5-0.5*w,0.5+0.5*w,0.5+0.5*l3      ,0.5+0.5*l3      ])
+        # self.line.append([0.5-0.5*w,0.5+0.5*w,0.5+0.5*l3+l2   ,0.5+0.5*l3+l2   ])
+        # self._show()
+        # self._cure(800)
+        # ''' boundaries '''
+        def f1(): self._showCureRect(-90,90, [0.5+0.5*w,0.5-0.5*l_body-l_leg,w,l_leg],oscAzimuth=True,oscPolar=False,waitTime_s=5)
+        def f2(): self._showCureRect(0,0,    [0.5+w,0.5-0.5*l_body,     w,l_body],oscAzimuth=False,oscPolar=True,waitTime_s=40)
+        def f3(): self._showCureRect(-90,90,        [0.5+0.5*w,0.5+0.5*l_body,     w,l_leg],oscAzimuth=False,oscPolar=False,waitTime_s=0)
+        def f4(): self._showCureRect(0,180,     [0.5  ,0.5-0.5*l_body,     w,l_body],oscAzimuth=False,oscPolar=True,waitTime_s=40)
+        def f5(): self._showCureRect(0,0,  [0.5-w,0.5-0.5*l_body,     w,l_body],oscAzimuth=False,oscPolar=False,waitTime_s=0)
+        def f6():
+            self._field_go(90,15)
+            time.sleep(10)
+            self._showCureRect(90,90,        [0.5-1.5*w,0.5-0.5*l_body-l_leg,w,l_leg],oscAzimuth=True,oscPolar=False,waitTime_s=10)
+        def f7(): self._showCureRect(0,180,     [0.5-2*w,0.5-0.5*l_body,      w,l_body],oscAzimuth=False,oscPolar=False,waitTime_s=0)
+        def f8(): self._showCureRect(90,90,  [0.5-1.5*w,0.5+0.5*l_body,      w,l_leg],oscAzimuth=False,oscPolar=False,waitTime_s=0)
+        for i in range(len(curingOrder)):
+            pieceId = curingOrder.index(i+1)
+            function = 'f' + str(pieceId+1) + '()'
+            eval(function)
+        self._field_go(0,90)
+
+    # def _macro_tripodneo(self):
+    #     p = 0.5
+    #     wl = 0.16 * p  #0.16
+    #     ll = 0.2 * p
+    #     wb = 0.9 * p
+    #     lb = 0.05 * p
+    #     wg = 0.05 * p
+    #     lg = 0.05 * p #0.1
+    #     wg2 = (wb - 4 * wg)/8
+    #     curingOrder = [3,4,1,2]
+    #
+    #     # self.rect.append([0.5-0.5*wb,0.5-0.5*lb,wb,lb])
+    #     # #left gaps
+    #     # self.rect.append([0.5-2*wg-3*wg2,0.5-0.5*lb-lg,wg,lg])
+    #     # self.rect.append([0.5-wg-wg2,0.5-0.5*lb-lg,wg,lg])
+    #     # self.rect.append([0.5       +wg2,0.5-0.5*lb-lg,wg,lg])
+    #     # self.rect.append([0.5+wg+3*wg2,0.5-0.5*lb-lg,wg,lg])
+    #     # #right gaps
+    #     # self.rect.append([0.5-2*wg-3*wg2,0.5+0.5*lb,wg,lg])
+    #     # self.rect.append([0.5-wg-wg2,0.5+0.5*lb,wg,lg])
+    #     # self.rect.append([0.5       +wg2,0.5+0.5*lb,wg,lg])
+    #     # self.rect.append([0.5+wg+3*wg2,0.5+0.5*lb,wg,lg])
+    #     # #left legs
+    #     # self.rect.append([0.5-1.5*wg-3*wg2-0.5*wl,0.5-0.5*lb-lg-ll,wl,ll])
+    #     # self.rect.append([0.5-0.5*wg-1*wg2-0.5*wl,0.5-0.5*lb-lg-ll,wl,ll])
+    #     # self.rect.append([0.5+0.5*wg+wg2-0.5*wl,0.5-0.5*lb-lg-ll,wl,ll])
+    #     # self.rect.append([0.5+1.5*wg+3*wg2-0.5*wl,0.5-0.5*lb-lg-ll,wl,ll])
+    #     # #right legs
+    #     # self.rect.append([0.5-1.5*wg-3*wg2-0.5*wl,0.5+0.5*lb+lg,wl,ll])
+    #     # self.rect.append([0.5-0.5*wg-1*wg2-0.5*wl,0.5+0.5*lb+lg,wl,ll])
+    #     # self.rect.append([0.5+0.5*wg+wg2-0.5*wl,0.5+0.5*lb+lg,wl,ll])
+    #     # self.rect.append([0.5+1.5*wg+3*wg2-0.5*wl,0.5+0.5*lb+lg,wl,ll])
+    #     # self._show()
+    #
+    #     ''' boundaries '''
+    #     self._field_go(0,0)
+    #     self.mm.oscPitch()
+    #     time.sleep(15)
+    #     self.mm.oscYaw()
+    #     time.sleep(15)
+    #     ''' body '''
+    #     self.line.append([0.5-0.5*wb,0.5-0.5*wb,0.5-0.5*lb,0.5+0.5*lb])
+    #     self.line.append([0.5+0.5*wb,0.5+0.5*wb,0.5-0.5*lb,0.5+0.5*lb])
+    #     self.line.append([0.5-0.5*wb,0.5+0.5*wb,0.5-0.5*lb,0.5-0.5*lb])
+    #     self.line.append([0.5-0.5*wb,0.5+0.5*wb,0.5+0.5*lb,0.5+0.5*lb])
+    #
+    #     ''' left '''
+    #     self.line.append([0.5-1.5*wg-3*wg2-0.5*wl,0.5-1.5*wg-3*wg2-0.5*wl,0.5-0.5*lb-lg-ll,0.5-0.5*lb-lg])
+    #     self.line.append([0.5-1.5*wg-3*wg2-0.5*wl,0.5-1.5*wg-3*wg2+0.5*wl,0.5-0.5*lb-lg-ll,0.5-0.5*lb-lg-ll])
+    #     self.line.append([0.5-1.5*wg-3*wg2+0.5*wl,0.5-1.5*wg-3*wg2+0.5*wl,0.5-0.5*lb-lg-ll,0.5-0.5*lb-lg])
+    #     self.line.append([0.5-1.5*wg-3*wg2+0.5*wl,0.5-1.5*wg-3*wg2+0.5*wl-wg2,0.5-0.5*lb-lg,0.5-0.5*lb-lg])
+    #     self.line.append([0.5-1.5*wg-3*wg2-0.5*wl,0.5-1.5*wg-3*wg2-0.5*wl+wg2,0.5-0.5*lb-lg,0.5-0.5*lb-lg])
+    #     self.line.append([0.5-1.5*wg-3*wg2-0.5*wl+wg2,0.5-1.5*wg-3*wg2-0.5*wl+wg2,0.5-0.5*lb-lg,0.5-0.5*lb])
+    #     self.line.append([0.5-1.5*wg-3*wg2+0.5*wl-wg2,0.5-1.5*wg-3*wg2+0.5*wl-wg2,0.5-0.5*lb-lg,0.5-0.5*lb])
+    #
+    #     self.line.append([0.5-0.5*wg-1*wg2-0.5*wl,0.5-0.5*wg-1*wg2-0.5*wl,0.5-0.5*lb-lg-ll,0.5-0.5*lb-lg])
+    #     self.line.append([0.5-0.5*wg-1*wg2-0.5*wl,0.5-0.5*wg-1*wg2+0.5*wl,0.5-0.5*lb-lg-ll,0.5-0.5*lb-lg-ll])
+    #     self.line.append([0.5-0.5*wg-1*wg2+0.5*wl,0.5-0.5*wg-1*wg2+0.5*wl,0.5-0.5*lb-lg-ll,0.5-0.5*lb-lg])
+    #     self.line.append([0.5-0.5*wg-1*wg2+0.5*wl,0.5-0.5*wg-1*wg2+0.5*wl-wg2,0.5-0.5*lb-lg,0.5-0.5*lb-lg])
+    #     self.line.append([0.5-0.5*wg-1*wg2-0.5*wl,0.5-0.5*wg-1*wg2-0.5*wl+wg2,0.5-0.5*lb-lg,0.5-0.5*lb-lg])
+    #     self.line.append([0.5-0.5*wg-1*wg2-0.5*wl+wg2,0.5-0.5*wg-1*wg2-0.5*wl+wg2,0.5-0.5*lb-lg,0.5-0.5*lb])
+    #     self.line.append([0.5-0.5*wg-1*wg2+0.5*wl-wg2,0.5-0.5*wg-1*wg2+0.5*wl-wg2,0.5-0.5*lb-lg,0.5-0.5*lb])
+    #
+    #     self.line.append([0.5+0.5*wg+1*wg2-0.5*wl,0.5+0.5*wg+1*wg2-0.5*wl,0.5-0.5*lb-lg-ll,0.5-0.5*lb-lg])
+    #     self.line.append([0.5+0.5*wg+1*wg2-0.5*wl,0.5+0.5*wg+1*wg2+0.5*wl,0.5-0.5*lb-lg-ll,0.5-0.5*lb-lg-ll])
+    #     self.line.append([0.5+0.5*wg+1*wg2+0.5*wl,0.5+0.5*wg+1*wg2+0.5*wl,0.5-0.5*lb-lg-ll,0.5-0.5*lb-lg])
+    #     self.line.append([0.5+0.5*wg+1*wg2+0.5*wl,0.5+0.5*wg+1*wg2+0.5*wl-wg2,0.5-0.5*lb-lg,0.5-0.5*lb-lg])
+    #     self.line.append([0.5+0.5*wg+1*wg2-0.5*wl,0.5+0.5*wg+1*wg2-0.5*wl+wg2,0.5-0.5*lb-lg,0.5-0.5*lb-lg])
+    #     self.line.append([0.5+0.5*wg+1*wg2-0.5*wl+wg2,0.5+0.5*wg+1*wg2-0.5*wl+wg2,0.5-0.5*lb-lg,0.5-0.5*lb])
+    #     self.line.append([0.5+0.5*wg+1*wg2+0.5*wl-wg2,0.5+0.5*wg+1*wg2+0.5*wl-wg2,0.5-0.5*lb-lg,0.5-0.5*lb])
+    #
+    #     self.line.append([0.5+1.5*wg+3*wg2-0.5*wl,0.5+1.5*wg+3*wg2-0.5*wl,0.5-0.5*lb-lg-ll,0.5-0.5*lb-lg])
+    #     self.line.append([0.5+1.5*wg+3*wg2-0.5*wl,0.5+1.5*wg+3*wg2+0.5*wl,0.5-0.5*lb-lg-ll,0.5-0.5*lb-lg-ll])
+    #     self.line.append([0.5+1.5*wg+3*wg2+0.5*wl,0.5+1.5*wg+3*wg2+0.5*wl,0.5-0.5*lb-lg-ll,0.5-0.5*lb-lg])
+    #     self.line.append([0.5+1.5*wg+3*wg2+0.5*wl,0.5+1.5*wg+3*wg2+0.5*wl-wg2,0.5-0.5*lb-lg,0.5-0.5*lb-lg])
+    #     self.line.append([0.5+1.5*wg+3*wg2-0.5*wl,0.5+1.5*wg+3*wg2-0.5*wl+wg2,0.5-0.5*lb-lg,0.5-0.5*lb-lg])
+    #     self.line.append([0.5+1.5*wg+3*wg2-0.5*wl+wg2,0.5+1.5*wg+3*wg2-0.5*wl+wg2,0.5-0.5*lb-lg,0.5-0.5*lb])
+    #     self.line.append([0.5+1.5*wg+3*wg2+0.5*wl-wg2,0.5+1.5*wg+3*wg2+0.5*wl-wg2,0.5-0.5*lb-lg,0.5-0.5*lb])
+    #
+    #     ''' right '''
+    #     self.line.append([0.5-1.5*wg-3*wg2-0.5*wl,0.5-1.5*wg-3*wg2+0.5*wl,0.5+0.5*lb+lg+ll,0.5+0.5*lb+lg+ll])
+    #     self.line.append([0.5-1.5*wg-3*wg2-0.5*wl,0.5-1.5*wg-3*wg2-0.5*wl,0.5+0.5*lb+lg+ll,0.5+0.5*lb+lg])
+    #     self.line.append([0.5-1.5*wg-3*wg2+0.5*wl,0.5-1.5*wg-3*wg2+0.5*wl,0.5+0.5*lb+lg+ll,0.5+0.5*lb+lg])
+    #     self.line.append([0.5-1.5*wg-3*wg2+0.5*wl,0.5-1.5*wg-3*wg2+0.5*wl-wg2,0.5+0.5*lb+lg,0.5+0.5*lb+lg])
+    #     self.line.append([0.5-1.5*wg-3*wg2-0.5*wl,0.5-1.5*wg-3*wg2-0.5*wl+wg2,0.5+0.5*lb+lg,0.5+0.5*lb+lg])
+    #     self.line.append([0.5-1.5*wg-3*wg2-0.5*wl+wg2,0.5-1.5*wg-3*wg2-0.5*wl+wg2,0.5+0.5*lb+lg,0.5+0.5*lb])
+    #     self.line.append([0.5-1.5*wg-3*wg2+0.5*wl-wg2,0.5-1.5*wg-3*wg2+0.5*wl-wg2,0.5+0.5*lb+lg,0.5+0.5*lb])
+    #
+    #     self.line.append([0.5-0.5*wg-1*wg2-0.5*wl,0.5-0.5*wg-1*wg2+0.5*wl,0.5+0.5*lb+lg+ll,0.5+0.5*lb+lg+ll])
+    #     self.line.append([0.5-0.5*wg-1*wg2-0.5*wl,0.5-0.5*wg-1*wg2-0.5*wl,0.5+0.5*lb+lg+ll,0.5+0.5*lb+lg])
+    #     self.line.append([0.5-0.5*wg-1*wg2+0.5*wl,0.5-0.5*wg-1*wg2+0.5*wl,0.5+0.5*lb+lg+ll,0.5+0.5*lb+lg])
+    #     self.line.append([0.5-0.5*wg-1*wg2+0.5*wl,0.5-0.5*wg-1*wg2+0.5*wl-wg2,0.5+0.5*lb+lg,0.5+0.5*lb+lg])
+    #     self.line.append([0.5-0.5*wg-1*wg2-0.5*wl,0.5-0.5*wg-1*wg2-0.5*wl+wg2,0.5+0.5*lb+lg,0.5+0.5*lb+lg])
+    #     self.line.append([0.5-0.5*wg-1*wg2-0.5*wl+wg2,0.5-0.5*wg-1*wg2-0.5*wl+wg2,0.5+0.5*lb+lg,0.5+0.5*lb])
+    #     self.line.append([0.5-0.5*wg-1*wg2+0.5*wl-wg2,0.5-0.5*wg-1*wg2+0.5*wl-wg2,0.5+0.5*lb+lg,0.5+0.5*lb])
+    #
+    #     self.line.append([0.5+0.5*wg+1*wg2-0.5*wl,0.5+0.5*wg+1*wg2+0.5*wl,0.5+0.5*lb+lg+ll,0.5+0.5*lb+lg+ll])
+    #     self.line.append([0.5+0.5*wg+1*wg2-0.5*wl,0.5+0.5*wg+1*wg2-0.5*wl,0.5+0.5*lb+lg+ll,0.5+0.5*lb+lg])
+    #     self.line.append([0.5+0.5*wg+1*wg2+0.5*wl,0.5+0.5*wg+1*wg2+0.5*wl,0.5+0.5*lb+lg+ll,0.5+0.5*lb+lg])
+    #     self.line.append([0.5+0.5*wg+1*wg2+0.5*wl,0.5+0.5*wg+1*wg2+0.5*wl-wg2,0.5+0.5*lb+lg,0.5+0.5*lb+lg])
+    #     self.line.append([0.5+0.5*wg+1*wg2-0.5*wl,0.5+0.5*wg+1*wg2-0.5*wl+wg2,0.5+0.5*lb+lg,0.5+0.5*lb+lg])
+    #     self.line.append([0.5+0.5*wg+1*wg2-0.5*wl+wg2,0.5+0.5*wg+1*wg2-0.5*wl+wg2,0.5+0.5*lb+lg,0.5+0.5*lb])
+    #     self.line.append([0.5+0.5*wg+1*wg2+0.5*wl-wg2,0.5+0.5*wg+1*wg2+0.5*wl-wg2,0.5+0.5*lb+lg,0.5+0.5*lb])
+    #
+    #     self.line.append([0.5+1.5*wg+3*wg2-0.5*wl,0.5+1.5*wg+3*wg2+0.5*wl,0.5+0.5*lb+lg+ll,0.5+0.5*lb+lg+ll])
+    #     self.line.append([0.5+1.5*wg+3*wg2-0.5*wl,0.5+1.5*wg+3*wg2-0.5*wl,0.5+0.5*lb+lg+ll,0.5+0.5*lb+lg])
+    #     self.line.append([0.5+1.5*wg+3*wg2+0.5*wl,0.5+1.5*wg+3*wg2+0.5*wl,0.5+0.5*lb+lg+ll,0.5+0.5*lb+lg])
+    #     self.line.append([0.5+1.5*wg+3*wg2+0.5*wl,0.5+1.5*wg+3*wg2+0.5*wl-wg2,0.5+0.5*lb+lg,0.5+0.5*lb+lg])
+    #     self.line.append([0.5+1.5*wg+3*wg2-0.5*wl,0.5+1.5*wg+3*wg2-0.5*wl+wg2,0.5+0.5*lb+lg,0.5+0.5*lb+lg])
+    #     self.line.append([0.5+1.5*wg+3*wg2-0.5*wl+wg2,0.5+1.5*wg+3*wg2-0.5*wl+wg2,0.5+0.5*lb+lg,0.5+0.5*lb])
+    #     self.line.append([0.5+1.5*wg+3*wg2+0.5*wl-wg2,0.5+1.5*wg+3*wg2+0.5*wl-wg2,0.5+0.5*lb+lg,0.5+0.5*lb])
+    #     self._show()
+    #     self._cure(800)
+    #     ''' boundaries '''
+    #     def f1():
+    #         self.rect.append([0.5-2*wg-3*wg2,0.5-0.5*lb-lg,wg,lg+lb])
+    #         self.rect.append([0.5-1.5*wg-3*wg2-0.5*wl,0.5-0.5*lb-lg-ll,wl,ll])
+    #         self.rect.append([0.5       +wg2,0.5-0.5*lb-lg,wg,lg+lb])
+    #         self.rect.append([0.5+0.5*wg+wg2-0.5*wl,0.5-0.5*lb-lg-ll,wl,ll])
+    #         self.rect.append([0.5-2*wg-3*wg2,0.5+0.5*lb,wg,lg])
+    #         self.rect.append([0.5-1.5*wg-3*wg2-0.5*wl,0.5+0.5*lb+lg,wl,ll])
+    #         self.rect.append([0.5+wg2,0.5+0.5*lb,wg,lg])
+    #         # self.rect.append([0.5+0.5*wg+wg2-0.5*wl,0.5+0.5*lb+lg,wl,ll])
+    #         self._showCureRect(-90,90, [0.5+0.5*wg+wg2-0.5*wl,0.5+0.5*lb+lg,wl,ll],oscAzimuth=True,oscPolar=False,waitTime_s=5)
+    #     def f2():
+    #         self._field_go(90,15)
+    #         time.sleep(10)
+    #         self.rect.append([0.5-wg-wg2,0.5-0.5*lb-lg,wg,lg+lb])
+    #         self.rect.append([0.5-0.5*wg-1*wg2-0.5*wl,0.5-0.5*lb-lg-ll,wl,ll])
+    #         self.rect.append([0.5+wg+3*wg2,0.5-0.5*lb-lg,wg,lg+lb])
+    #         self.rect.append([0.5+1.5*wg+3*wg2-0.5*wl,0.5-0.5*lb-lg-ll,wl,ll])
+    #         self.rect.append([0.5-wg-wg2,0.5+0.5*lb,wg,lg])
+    #         self.rect.append([0.5-0.5*wg-1*wg2-0.5*wl,0.5+0.5*lb+lg,wl,ll])
+    #         self.rect.append([0.5+wg+3*wg2,0.5+0.5*lb,wg,lg])
+    #         # self.rect.append([0.5+1.5*wg+3*wg2-0.5*wl,0.5+0.5*lb+lg,wl,ll])
+    #         self._showCureRect(90,90,[0.5+1.5*wg+3*wg2-0.5*wl,0.5+0.5*lb+lg,wl,ll],oscAzimuth=True,oscPolar=False,waitTime_s=5)
+    #     def f3():
+    #         self.rect.append([0.5-0.5*wb,0.5-0.5*lb,wg2,lb])
+    #         self.rect.append([0.5-0.5*wb+2*wg2+1*wg,0.5-0.5*lb,wg2,lb])
+    #         self.rect.append([0.5-0.5*wb+4*wg2+2*wg,0.5-0.5*lb,wg2,lb])
+    #         self._showCureRect(0,0, [0.5-0.5*wb+6*wg2+3*wg,0.5-0.5*lb,wg2,lb],oscAzimuth=True,oscPolar=True,waitTime_s=40)
+    #     def f4():
+    #         self.rect.append([0.5-0.5*wb+1*wg2+1*wg,0.5-0.5*lb,wg2,lb])
+    #         self.rect.append([0.5-0.5*wb+3*wg2+2*wg,0.5-0.5*lb,wg2,lb])
+    #         self.rect.append([0.5-0.5*wb+5*wg2+3*wg,0.5-0.5*lb,wg2,lb])
+    #         self._showCureRect(0,180,[0.5-0.5*wb+7*wg2+4*wg,0.5-0.5*lb,wg2,lb],oscAzimuth=True,oscPolar=True,waitTime_s=40)
+    #
+    #     for i in range(len(curingOrder)):
+    #         pieceId = curingOrder.index(i+1)
+    #         function = 'f' + str(pieceId+1) + '()'
+    #         eval(function)
+    #     self._field_go(0,90)
+
+    def _macro_tripodneo(self):
+        p = 0.8
+        wl = 0.16 * p  #0.16
+        ll = 0.2 * p
+        wb = 1.0 * p #0.9
+        lb = 0.05 * p
+        wg = 0.04 * p
+        lg = 0.1 * p #0.1
+        wg2 = (wb - 4 * wg)/8
+        curingOrder = [3,4,1,2]
+
+        # self.rect.append([0.5-0.5*wb,0.5-0.5*lb,wb,lb])
+        # #left gaps
+        # self.rect.append([0.5-2*wg-3*wg2,0.5-0.5*lb-lg,wg,lg])
+        # self.rect.append([0.5-wg-wg2,0.5-0.5*lb-lg,wg,lg])
+        # self.rect.append([0.5       +wg2,0.5-0.5*lb-lg,wg,lg])
+        # self.rect.append([0.5+wg+3*wg2,0.5-0.5*lb-lg,wg,lg])
+        # #right gaps
+        # self.rect.append([0.5-2*wg-3*wg2,0.5+0.5*lb,wg,lg])
+        # self.rect.append([0.5-wg-wg2,0.5+0.5*lb,wg,lg])
+        # self.rect.append([0.5       +wg2,0.5+0.5*lb,wg,lg])
+        # self.rect.append([0.5+wg+3*wg2,0.5+0.5*lb,wg,lg])
+        # #left legs
+        # self.rect.append([0.5-1.5*wg-3*wg2-0.5*wl,0.5-0.5*lb-lg-ll,wl,ll])
+        # self.rect.append([0.5-0.5*wg-1*wg2-0.5*wl,0.5-0.5*lb-lg-ll,wl,ll])
+        # self.rect.append([0.5+0.5*wg+wg2-0.5*wl,0.5-0.5*lb-lg-ll,wl,ll])
+        # self.rect.append([0.5+1.5*wg+3*wg2-0.5*wl,0.5-0.5*lb-lg-ll,wl,ll])
+        # #right legs
+        # self.rect.append([0.5-1.5*wg-3*wg2-0.5*wl,0.5+0.5*lb+lg,wl,ll])
+        # self.rect.append([0.5-0.5*wg-1*wg2-0.5*wl,0.5+0.5*lb+lg,wl,ll])
+        # self.rect.append([0.5+0.5*wg+wg2-0.5*wl,0.5+0.5*lb+lg,wl,ll])
+        # self.rect.append([0.5+1.5*wg+3*wg2-0.5*wl,0.5+0.5*lb+lg,wl,ll])
+        # self._show()
+
+        # ''' boundaries '''
+        # self._field_go(0,0)
+        # self.mm.oscPitch()
+        # time.sleep(15)
+        # self.mm.oscYaw()
+        # time.sleep(15)
+        # ''' body '''
+        # self.line.append([0.5-0.5*wb,0.5-0.5*wb,0.5-0.5*lb,0.5+0.5*lb])
+        # self.line.append([0.5+0.5*wb,0.5+0.5*wb,0.5-0.5*lb,0.5+0.5*lb])
+        # self.line.append([0.5-0.5*wb,0.5+0.5*wb,0.5-0.5*lb,0.5-0.5*lb])
+        # self.line.append([0.5-0.5*wb,0.5+0.5*wb,0.5+0.5*lb,0.5+0.5*lb])
+        #
+        # ''' left '''
+        # self.line.append([0.5-1.5*wg-3*wg2-0.5*wl,0.5-1.5*wg-3*wg2-0.5*wl,0.5-0.5*lb-lg-ll,0.5-0.5*lb-lg])
+        # self.line.append([0.5-1.5*wg-3*wg2-0.5*wl,0.5-1.5*wg-3*wg2+0.5*wl,0.5-0.5*lb-lg-ll,0.5-0.5*lb-lg-ll])
+        # self.line.append([0.5-1.5*wg-3*wg2+0.5*wl,0.5-1.5*wg-3*wg2+0.5*wl,0.5-0.5*lb-lg-ll,0.5-0.5*lb-lg])
+        # self.line.append([0.5-1.5*wg-3*wg2+0.5*wl,0.5-1.5*wg-3*wg2+0.5*wl-wg2,0.5-0.5*lb-lg,0.5-0.5*lb-lg])
+        # self.line.append([0.5-1.5*wg-3*wg2-0.5*wl,0.5-1.5*wg-3*wg2-0.5*wl+wg2,0.5-0.5*lb-lg,0.5-0.5*lb-lg])
+        # self.line.append([0.5-1.5*wg-3*wg2-0.5*wl+wg2,0.5-1.5*wg-3*wg2-0.5*wl+wg2,0.5-0.5*lb-lg,0.5-0.5*lb])
+        # self.line.append([0.5-1.5*wg-3*wg2+0.5*wl-wg2,0.5-1.5*wg-3*wg2+0.5*wl-wg2,0.5-0.5*lb-lg,0.5-0.5*lb])
+        #
+        # self.line.append([0.5-0.5*wg-1*wg2-0.5*wl,0.5-0.5*wg-1*wg2-0.5*wl,0.5-0.5*lb-lg-ll,0.5-0.5*lb-lg])
+        # self.line.append([0.5-0.5*wg-1*wg2-0.5*wl,0.5-0.5*wg-1*wg2+0.5*wl,0.5-0.5*lb-lg-ll,0.5-0.5*lb-lg-ll])
+        # self.line.append([0.5-0.5*wg-1*wg2+0.5*wl,0.5-0.5*wg-1*wg2+0.5*wl,0.5-0.5*lb-lg-ll,0.5-0.5*lb-lg])
+        # self.line.append([0.5-0.5*wg-1*wg2+0.5*wl,0.5-0.5*wg-1*wg2+0.5*wl-wg2,0.5-0.5*lb-lg,0.5-0.5*lb-lg])
+        # self.line.append([0.5-0.5*wg-1*wg2-0.5*wl,0.5-0.5*wg-1*wg2-0.5*wl+wg2,0.5-0.5*lb-lg,0.5-0.5*lb-lg])
+        # self.line.append([0.5-0.5*wg-1*wg2-0.5*wl+wg2,0.5-0.5*wg-1*wg2-0.5*wl+wg2,0.5-0.5*lb-lg,0.5-0.5*lb])
+        # self.line.append([0.5-0.5*wg-1*wg2+0.5*wl-wg2,0.5-0.5*wg-1*wg2+0.5*wl-wg2,0.5-0.5*lb-lg,0.5-0.5*lb])
+        #
+        # self.line.append([0.5+0.5*wg+1*wg2-0.5*wl,0.5+0.5*wg+1*wg2-0.5*wl,0.5-0.5*lb-lg-ll,0.5-0.5*lb-lg])
+        # self.line.append([0.5+0.5*wg+1*wg2-0.5*wl,0.5+0.5*wg+1*wg2+0.5*wl,0.5-0.5*lb-lg-ll,0.5-0.5*lb-lg-ll])
+        # self.line.append([0.5+0.5*wg+1*wg2+0.5*wl,0.5+0.5*wg+1*wg2+0.5*wl,0.5-0.5*lb-lg-ll,0.5-0.5*lb-lg])
+        # self.line.append([0.5+0.5*wg+1*wg2+0.5*wl,0.5+0.5*wg+1*wg2+0.5*wl-wg2,0.5-0.5*lb-lg,0.5-0.5*lb-lg])
+        # self.line.append([0.5+0.5*wg+1*wg2-0.5*wl,0.5+0.5*wg+1*wg2-0.5*wl+wg2,0.5-0.5*lb-lg,0.5-0.5*lb-lg])
+        # self.line.append([0.5+0.5*wg+1*wg2-0.5*wl+wg2,0.5+0.5*wg+1*wg2-0.5*wl+wg2,0.5-0.5*lb-lg,0.5-0.5*lb])
+        # self.line.append([0.5+0.5*wg+1*wg2+0.5*wl-wg2,0.5+0.5*wg+1*wg2+0.5*wl-wg2,0.5-0.5*lb-lg,0.5-0.5*lb])
+        #
+        # self.line.append([0.5+1.5*wg+3*wg2-0.5*wl,0.5+1.5*wg+3*wg2-0.5*wl,0.5-0.5*lb-lg-ll,0.5-0.5*lb-lg])
+        # self.line.append([0.5+1.5*wg+3*wg2-0.5*wl,0.5+1.5*wg+3*wg2+0.5*wl,0.5-0.5*lb-lg-ll,0.5-0.5*lb-lg-ll])
+        # self.line.append([0.5+1.5*wg+3*wg2+0.5*wl,0.5+1.5*wg+3*wg2+0.5*wl,0.5-0.5*lb-lg-ll,0.5-0.5*lb-lg])
+        # self.line.append([0.5+1.5*wg+3*wg2+0.5*wl,0.5+1.5*wg+3*wg2+0.5*wl-wg2,0.5-0.5*lb-lg,0.5-0.5*lb-lg])
+        # self.line.append([0.5+1.5*wg+3*wg2-0.5*wl,0.5+1.5*wg+3*wg2-0.5*wl+wg2,0.5-0.5*lb-lg,0.5-0.5*lb-lg])
+        # self.line.append([0.5+1.5*wg+3*wg2-0.5*wl+wg2,0.5+1.5*wg+3*wg2-0.5*wl+wg2,0.5-0.5*lb-lg,0.5-0.5*lb])
+        # self.line.append([0.5+1.5*wg+3*wg2+0.5*wl-wg2,0.5+1.5*wg+3*wg2+0.5*wl-wg2,0.5-0.5*lb-lg,0.5-0.5*lb])
+        #
+        # ''' right '''
+        # self.line.append([0.5-1.5*wg-3*wg2-0.5*wl,0.5-1.5*wg-3*wg2+0.5*wl,0.5+0.5*lb+lg+ll,0.5+0.5*lb+lg+ll])
+        # self.line.append([0.5-1.5*wg-3*wg2-0.5*wl,0.5-1.5*wg-3*wg2-0.5*wl,0.5+0.5*lb+lg+ll,0.5+0.5*lb+lg])
+        # self.line.append([0.5-1.5*wg-3*wg2+0.5*wl,0.5-1.5*wg-3*wg2+0.5*wl,0.5+0.5*lb+lg+ll,0.5+0.5*lb+lg])
+        # self.line.append([0.5-1.5*wg-3*wg2+0.5*wl,0.5-1.5*wg-3*wg2+0.5*wl-wg2,0.5+0.5*lb+lg,0.5+0.5*lb+lg])
+        # self.line.append([0.5-1.5*wg-3*wg2-0.5*wl,0.5-1.5*wg-3*wg2-0.5*wl+wg2,0.5+0.5*lb+lg,0.5+0.5*lb+lg])
+        # self.line.append([0.5-1.5*wg-3*wg2-0.5*wl+wg2,0.5-1.5*wg-3*wg2-0.5*wl+wg2,0.5+0.5*lb+lg,0.5+0.5*lb])
+        # self.line.append([0.5-1.5*wg-3*wg2+0.5*wl-wg2,0.5-1.5*wg-3*wg2+0.5*wl-wg2,0.5+0.5*lb+lg,0.5+0.5*lb])
+        #
+        # self.line.append([0.5-0.5*wg-1*wg2-0.5*wl,0.5-0.5*wg-1*wg2+0.5*wl,0.5+0.5*lb+lg+ll,0.5+0.5*lb+lg+ll])
+        # self.line.append([0.5-0.5*wg-1*wg2-0.5*wl,0.5-0.5*wg-1*wg2-0.5*wl,0.5+0.5*lb+lg+ll,0.5+0.5*lb+lg])
+        # self.line.append([0.5-0.5*wg-1*wg2+0.5*wl,0.5-0.5*wg-1*wg2+0.5*wl,0.5+0.5*lb+lg+ll,0.5+0.5*lb+lg])
+        # self.line.append([0.5-0.5*wg-1*wg2+0.5*wl,0.5-0.5*wg-1*wg2+0.5*wl-wg2,0.5+0.5*lb+lg,0.5+0.5*lb+lg])
+        # self.line.append([0.5-0.5*wg-1*wg2-0.5*wl,0.5-0.5*wg-1*wg2-0.5*wl+wg2,0.5+0.5*lb+lg,0.5+0.5*lb+lg])
+        # self.line.append([0.5-0.5*wg-1*wg2-0.5*wl+wg2,0.5-0.5*wg-1*wg2-0.5*wl+wg2,0.5+0.5*lb+lg,0.5+0.5*lb])
+        # self.line.append([0.5-0.5*wg-1*wg2+0.5*wl-wg2,0.5-0.5*wg-1*wg2+0.5*wl-wg2,0.5+0.5*lb+lg,0.5+0.5*lb])
+        #
+        # self.line.append([0.5+0.5*wg+1*wg2-0.5*wl,0.5+0.5*wg+1*wg2+0.5*wl,0.5+0.5*lb+lg+ll,0.5+0.5*lb+lg+ll])
+        # self.line.append([0.5+0.5*wg+1*wg2-0.5*wl,0.5+0.5*wg+1*wg2-0.5*wl,0.5+0.5*lb+lg+ll,0.5+0.5*lb+lg])
+        # self.line.append([0.5+0.5*wg+1*wg2+0.5*wl,0.5+0.5*wg+1*wg2+0.5*wl,0.5+0.5*lb+lg+ll,0.5+0.5*lb+lg])
+        # self.line.append([0.5+0.5*wg+1*wg2+0.5*wl,0.5+0.5*wg+1*wg2+0.5*wl-wg2,0.5+0.5*lb+lg,0.5+0.5*lb+lg])
+        # self.line.append([0.5+0.5*wg+1*wg2-0.5*wl,0.5+0.5*wg+1*wg2-0.5*wl+wg2,0.5+0.5*lb+lg,0.5+0.5*lb+lg])
+        # self.line.append([0.5+0.5*wg+1*wg2-0.5*wl+wg2,0.5+0.5*wg+1*wg2-0.5*wl+wg2,0.5+0.5*lb+lg,0.5+0.5*lb])
+        # self.line.append([0.5+0.5*wg+1*wg2+0.5*wl-wg2,0.5+0.5*wg+1*wg2+0.5*wl-wg2,0.5+0.5*lb+lg,0.5+0.5*lb])
+        #
+        # self.line.append([0.5+1.5*wg+3*wg2-0.5*wl,0.5+1.5*wg+3*wg2+0.5*wl,0.5+0.5*lb+lg+ll,0.5+0.5*lb+lg+ll])
+        # self.line.append([0.5+1.5*wg+3*wg2-0.5*wl,0.5+1.5*wg+3*wg2-0.5*wl,0.5+0.5*lb+lg+ll,0.5+0.5*lb+lg])
+        # self.line.append([0.5+1.5*wg+3*wg2+0.5*wl,0.5+1.5*wg+3*wg2+0.5*wl,0.5+0.5*lb+lg+ll,0.5+0.5*lb+lg])
+        # self.line.append([0.5+1.5*wg+3*wg2+0.5*wl,0.5+1.5*wg+3*wg2+0.5*wl-wg2,0.5+0.5*lb+lg,0.5+0.5*lb+lg])
+        # self.line.append([0.5+1.5*wg+3*wg2-0.5*wl,0.5+1.5*wg+3*wg2-0.5*wl+wg2,0.5+0.5*lb+lg,0.5+0.5*lb+lg])
+        # self.line.append([0.5+1.5*wg+3*wg2-0.5*wl+wg2,0.5+1.5*wg+3*wg2-0.5*wl+wg2,0.5+0.5*lb+lg,0.5+0.5*lb])
+        # self.line.append([0.5+1.5*wg+3*wg2+0.5*wl-wg2,0.5+1.5*wg+3*wg2+0.5*wl-wg2,0.5+0.5*lb+lg,0.5+0.5*lb])
+        # self._show()
+        # self._cure(800)
+        ''' boundaries '''
+        def f1():
+            self.rect.append([0.5-2*wg-3*wg2,0.5-0.5*lb-lg,wg,lg+lb])
+            self.rect.append([0.5-1.5*wg-3*wg2-0.5*wl,0.5-0.5*lb-lg-ll,wl,ll])
+            self.rect.append([0.5       +wg2,0.5-0.5*lb-lg,wg,lg+lb])
+            self.rect.append([0.5+0.5*wg+wg2-0.5*wl,0.5-0.5*lb-lg-ll,wl,ll])
+            self.rect.append([0.5-2*wg-3*wg2,0.5+0.5*lb,wg,lg])
+            self.rect.append([0.5-1.5*wg-3*wg2-0.5*wl,0.5+0.5*lb+lg,wl,ll])
+            self.rect.append([0.5+wg2,0.5+0.5*lb,wg,lg])
+            self._showCureRect(-90,90, [0.5+0.5*wg+wg2-0.5*wl,0.5+0.5*lb+lg,wl,ll],oscAzimuth=True,oscPolar=False,waitTime_s=5)
+        def f2():
+            self._field_go(90,15)
+            time.sleep(10)
+            self.rect.append([0.5-wg-wg2,0.5-0.5*lb-lg,wg,lg+lb])
+            self.rect.append([0.5-0.5*wg-1*wg2-0.5*wl,0.5-0.5*lb-lg-ll,wl,ll])
+            self.rect.append([0.5+wg+3*wg2,0.5-0.5*lb-lg,wg,lg+lb])
+            self.rect.append([0.5+1.5*wg+3*wg2-0.5*wl,0.5-0.5*lb-lg-ll,wl,ll])
+            self.rect.append([0.5-wg-wg2,0.5+0.5*lb,wg,lg])
+            self.rect.append([0.5-0.5*wg-1*wg2-0.5*wl,0.5+0.5*lb+lg,wl,ll])
+            self.rect.append([0.5+wg+3*wg2,0.5+0.5*lb,wg,lg])
+            self._showCureRect(90,90,[0.5+1.5*wg+3*wg2-0.5*wl,0.5+0.5*lb+lg,wl,ll],oscAzimuth=True,oscPolar=False,waitTime_s=5)
+        def f3():
+            self.rect.append([0.5-0.5*wb,0.5-0.5*lb,wg2,lb])
+            self.rect.append([0.5-0.5*wb+2*wg2+1*wg,0.5-0.5*lb,wg2,lb])
+            self.rect.append([0.5-0.5*wb+4*wg2+2*wg,0.5-0.5*lb,wg2,lb])
+            self._showCureRect(0,0, [0.5-0.5*wb+6*wg2+3*wg,0.5-0.5*lb,wg2,lb],oscAzimuth=True,oscPolar=True,waitTime_s=40)
+        def f4():
+            self.rect.append([0.5-0.5*wb+1*wg2+1*wg,0.5-0.5*lb,wg2,lb])
+            self.rect.append([0.5-0.5*wb+3*wg2+2*wg,0.5-0.5*lb,wg2,lb])
+            self.rect.append([0.5-0.5*wb+5*wg2+3*wg,0.5-0.5*lb,wg2,lb])
+            self._showCureRect(0,180,[0.5-0.5*wb+7*wg2+4*wg,0.5-0.5*lb,wg2,lb],oscAzimuth=True,oscPolar=True,waitTime_s=40)
+        for i in range(len(curingOrder)):
+            pieceId = curingOrder.index(i+1)
+            function = 'f' + str(pieceId+1) + '()'
+            eval(function)
+        self._field_go(0,90)
+
+    def _macro_tripodthree(self):
+        p = 0.5
+        wl = 0.16 * p  #0.16
+        ll = 0.2 * p
+        wb = 0.7 * p
+        lb = 0.05 * p
+        wg = 0.05 * p
+        lg = 0.05 * p #0.1
+        wg2 = (wb - 3 * wg)/6
+        curingOrder = [3,4,1,2]
+
+        ''' boundaries '''
+        self._field_go(0,0)
+        self.mm.oscPitch()
+        time.sleep(15)
+        self.mm.oscYaw()
+        time.sleep(15)
+        ''' body '''
+        self.line.append([0.5-0.5*wb,0.5-0.5*wb,0.5-0.5*lb,0.5+0.5*lb])
+        self.line.append([0.5+0.5*wb,0.5+0.5*wb,0.5-0.5*lb,0.5+0.5*lb])
+        self.line.append([0.5-0.5*wb,0.5+0.5*wb,0.5-0.5*lb,0.5-0.5*lb])
+        self.line.append([0.5-0.5*wb,0.5+0.5*wb,0.5+0.5*lb,0.5+0.5*lb])
+
+        ''' left '''
+        self.line.append([0.5-1*wg-2*wg2-0.5*wl,0.5-1*wg-2*wg2-0.5*wl,0.5-0.5*lb-lg-ll,0.5-0.5*lb-lg])
+        self.line.append([0.5-1*wg-2*wg2+0.5*wl,0.5-1*wg-2*wg2+0.5*wl,0.5-0.5*lb-lg-ll,0.5-0.5*lb-lg])
+        self.line.append([0.5-1*wg-2*wg2-0.5*wl,0.5-1*wg-2*wg2+0.5*wl,0.5-0.5*lb-lg-ll,0.5-0.5*lb-lg-ll])
+        self.line.append([0.5-1*wg-2*wg2-0.5*wl,0.5-1*wg-2*wg2-0.5*wl+0.5*wl-0.5*wg,0.5-0.5*lb-lg,0.5-0.5*lb-lg])
+        self.line.append([0.5-1*wg-2*wg2+0.5*wl,0.5-1*wg-2*wg2+0.5*wl-0.5*wl+0.5*wg,0.5-0.5*lb-lg,0.5-0.5*lb-lg])
+        self.line.append([0.5-1*wg-2*wg2+0.5*wl-0.5*wl+0.5*wg,0.5-1*wg-2*wg2+0.5*wl-0.5*wl+0.5*wg,0.5-0.5*lb-lg,0.5-0.5*lb])
+        self.line.append([0.5-1*wg-2*wg2-0.5*wl+0.5*wl-0.5*wg,0.5-1*wg-2*wg2-0.5*wl+0.5*wl-0.5*wg,0.5-0.5*lb-lg,0.5-0.5*lb])
+
+        self.line.append([0.5-0*wg-0*wg2-0.5*wl,0.5-0*wg-0*wg2-0.5*wl,0.5-0.5*lb-lg-ll,0.5-0.5*lb-lg])
+        self.line.append([0.5-0*wg-0*wg2+0.5*wl,0.5-0*wg-0*wg2+0.5*wl,0.5-0.5*lb-lg-ll,0.5-0.5*lb-lg])
+        self.line.append([0.5-0*wg-0*wg2-0.5*wl,0.5-0*wg-0*wg2+0.5*wl,0.5-0.5*lb-lg-ll,0.5-0.5*lb-lg-ll])
+        self.line.append([0.5-0*wg-0*wg2-0.5*wl,0.5-0*wg-0*wg2-0.5*wl+0.5*wl-0.5*wg,0.5-0.5*lb-lg,0.5-0.5*lb-lg])
+        self.line.append([0.5-0*wg-0*wg2+0.5*wl,0.5-0*wg-0*wg2+0.5*wl-0.5*wl+0.5*wg,0.5-0.5*lb-lg,0.5-0.5*lb-lg])
+        self.line.append([0.5-0*wg-0*wg2+0.5*wl-0.5*wl+0.5*wg,0.5-0*wg-0*wg2+0.5*wl-0.5*wl+0.5*wg,0.5-0.5*lb-lg,0.5-0.5*lb])
+        self.line.append([0.5-0*wg-0*wg2-0.5*wl+0.5*wl-0.5*wg,0.5-0*wg-0*wg2-0.5*wl+0.5*wl-0.5*wg,0.5-0.5*lb-lg,0.5-0.5*lb])
+
+        self.line.append([0.5+1*wg+2*wg2-0.5*wl,0.5+1*wg+2*wg2-0.5*wl,0.5-0.5*lb-lg-ll,0.5-0.5*lb-lg])
+        self.line.append([0.5+1*wg+2*wg2+0.5*wl,0.5+1*wg+2*wg2+0.5*wl,0.5-0.5*lb-lg-ll,0.5-0.5*lb-lg])
+        self.line.append([0.5+1*wg+2*wg2-0.5*wl,0.5+1*wg+2*wg2+0.5*wl,0.5-0.5*lb-lg-ll,0.5-0.5*lb-lg-ll])
+        self.line.append([0.5+1*wg+2*wg2-0.5*wl,0.5+1*wg+2*wg2-0.5*wl+0.5*wl-0.5*wg,0.5-0.5*lb-lg,0.5-0.5*lb-lg])
+        self.line.append([0.5+1*wg+2*wg2+0.5*wl,0.5+1*wg+2*wg2+0.5*wl-0.5*wl+0.5*wg,0.5-0.5*lb-lg,0.5-0.5*lb-lg])
+        self.line.append([0.5+1*wg+2*wg2+0.5*wl-0.5*wl+0.5*wg,0.5+1*wg+2*wg2+0.5*wl-0.5*wl+0.5*wg,0.5-0.5*lb-lg,0.5-0.5*lb])
+        self.line.append([0.5+1*wg+2*wg2-0.5*wl+0.5*wl-0.5*wg,0.5+1*wg+2*wg2-0.5*wl+0.5*wl-0.5*wg,0.5-0.5*lb-lg,0.5-0.5*lb])
+        ''' right '''
+        self.line.append([0.5-1*wg-2*wg2-0.5*wl,0.5-1*wg-2*wg2-0.5*wl,0.5+0.5*lb+lg+ll,0.5+0.5*lb+lg])
+        self.line.append([0.5-1*wg-2*wg2+0.5*wl,0.5-1*wg-2*wg2+0.5*wl,0.5+0.5*lb+lg+ll,0.5+0.5*lb+lg])
+        self.line.append([0.5-1*wg-2*wg2-0.5*wl,0.5-1*wg-2*wg2+0.5*wl,0.5+0.5*lb+lg+ll,0.5+0.5*lb+lg+ll])
+        self.line.append([0.5-1*wg-2*wg2-0.5*wl,0.5-1*wg-2*wg2-0.5*wl+0.5*wl-0.5*wg,0.5+0.5*lb+lg,0.5+0.5*lb+lg])
+        self.line.append([0.5-1*wg-2*wg2+0.5*wl,0.5-1*wg-2*wg2+0.5*wl-0.5*wl+0.5*wg,0.5+0.5*lb+lg,0.5+0.5*lb+lg])
+        self.line.append([0.5-1*wg-2*wg2+0.5*wl-0.5*wl+0.5*wg,0.5-1*wg-2*wg2+0.5*wl-0.5*wl+0.5*wg,0.5+0.5*lb+lg,0.5+0.5*lb])
+        self.line.append([0.5-1*wg-2*wg2-0.5*wl+0.5*wl-0.5*wg,0.5-1*wg-2*wg2-0.5*wl+0.5*wl-0.5*wg,0.5+0.5*lb+lg,0.5+0.5*lb])
+
+        self.line.append([0.5-0*wg-0*wg2-0.5*wl,0.5-0*wg-0*wg2-0.5*wl,0.5+0.5*lb+lg+ll,0.5+0.5*lb+lg])
+        self.line.append([0.5-0*wg-0*wg2+0.5*wl,0.5-0*wg-0*wg2+0.5*wl,0.5+0.5*lb+lg+ll,0.5+0.5*lb+lg])
+        self.line.append([0.5-0*wg-0*wg2-0.5*wl,0.5-0*wg-0*wg2+0.5*wl,0.5+0.5*lb+lg+ll,0.5+0.5*lb+lg+ll])
+        self.line.append([0.5-0*wg-0*wg2-0.5*wl,0.5-0*wg-0*wg2-0.5*wl+0.5*wl-0.5*wg,0.5+0.5*lb+lg,0.5+0.5*lb+lg])
+        self.line.append([0.5-0*wg-0*wg2+0.5*wl,0.5-0*wg-0*wg2+0.5*wl-0.5*wl+0.5*wg,0.5+0.5*lb+lg,0.5+0.5*lb+lg])
+        self.line.append([0.5-0*wg-0*wg2+0.5*wl-0.5*wl+0.5*wg,0.5-0*wg-0*wg2+0.5*wl-0.5*wl+0.5*wg,0.5+0.5*lb+lg,0.5+0.5*lb])
+        self.line.append([0.5-0*wg-0*wg2-0.5*wl+0.5*wl-0.5*wg,0.5-0*wg-0*wg2-0.5*wl+0.5*wl-0.5*wg,0.5+0.5*lb+lg,0.5+0.5*lb])
+
+        self.line.append([0.5+1*wg+2*wg2-0.5*wl,0.5+1*wg+2*wg2-0.5*wl,0.5+0.5*lb+lg+ll,0.5+0.5*lb+lg])
+        self.line.append([0.5+1*wg+2*wg2+0.5*wl,0.5+1*wg+2*wg2+0.5*wl,0.5+0.5*lb+lg+ll,0.5+0.5*lb+lg])
+        self.line.append([0.5+1*wg+2*wg2-0.5*wl,0.5+1*wg+2*wg2+0.5*wl,0.5+0.5*lb+lg+ll,0.5+0.5*lb+lg+ll])
+        self.line.append([0.5+1*wg+2*wg2-0.5*wl,0.5+1*wg+2*wg2-0.5*wl+0.5*wl-0.5*wg,0.5+0.5*lb+lg,0.5+0.5*lb+lg])
+        self.line.append([0.5+1*wg+2*wg2+0.5*wl,0.5+1*wg+2*wg2+0.5*wl-0.5*wl+0.5*wg,0.5+0.5*lb+lg,0.5+0.5*lb+lg])
+        self.line.append([0.5+1*wg+2*wg2+0.5*wl-0.5*wl+0.5*wg,0.5+1*wg+2*wg2+0.5*wl-0.5*wl+0.5*wg,0.5+0.5*lb+lg,0.5+0.5*lb])
+        self.line.append([0.5+1*wg+2*wg2-0.5*wl+0.5*wl-0.5*wg,0.5+1*wg+2*wg2-0.5*wl+0.5*wl-0.5*wg,0.5+0.5*lb+lg,0.5+0.5*lb])
+
+        self._show()
+        self._cure(800)
+        ''' boundaries '''
+
+        def f1():
+            self.rect.append([0.5-1.5*wg-2*wg2,0.5-0.5*lb-lg,wg,lg+lb])
+            self.rect.append([0.5-1*wg-2*wg2-0.5*wl,0.5-0.5*lb-lg-ll,wl,ll])
+            self.rect.append([0.5-1.5*wg-2*wg2,0.5+0.5*lb,wg,lg])
+            self.rect.append([0.5-1*wg-2*wg2-0.5*wl,0.5+0.5*lb+lg,wl,ll])
+            self.rect.append([0.5+0.5*wg+2*wg2,0.5-0.5*lb-lg,wg,lg+lg])
+            self.rect.append([0.5+1*wg+2*wg2-0.5*wl,0.5-0.5*lb-lg-ll,wl,ll])
+            self.rect.append([0.5+0.5*wg+2*wg2,0.5+0.5*lb,wg,lg])
+            self._showCureRect(-90,90, [0.5+1*wg+2*wg2-0.5*wl,0.5+0.5*lb+lg,wl,ll],oscAzimuth=True,oscPolar=False,waitTime_s=5)
+        def f2():
+            self._field_go(90,15)
+            time.sleep(10)
+            self.rect.append([0.5-0.5*wg,0.5-0.5*lb-lg,wg,lg+lb])
+            self.rect.append([0.5-0.5*wg,0.5+0.5*lb,wg,lg])
+            self.rect.append([0.5-0.5*wl,0.5-0.5*lb-lg-ll,wl,ll])
+            self._showCureRect(90,90,[0.5-0.5*wl,0.5+0.5*lb+lg,wl,ll],oscAzimuth=True,oscPolar=False,waitTime_s=5)
+        def f3():
+            self.rect.append([0.5-0.5*wb,0.5-0.5*lb,wg2,lb])
+            self.rect.append([0.5-0.5*wb+2*wg2+1*wg,0.5-0.5*lb,wg2,lb])
+            self._showCureRect(0,0, [0.5-0.5*wb+4*wg2+2*wg,0.5-0.5*lb,wg2,lb],oscAzimuth=True,oscPolar=True,waitTime_s=40)
+        def f4():
+            self.rect.append([0.5-0.5*wb+1*wg2+1*wg,0.5-0.5*lb,wg2,lb])
+            self.rect.append([0.5-0.5*wb+3*wg2+2*wg,0.5-0.5*lb,wg2,lb])
+            self._showCureRect(0,180,[0.5-0.5*wb+5*wg2+3*wg,0.5-0.5*lb,wg2,lb],oscAzimuth=True,oscPolar=True,waitTime_s=40)
+
+        for i in range(len(curingOrder)):
+            pieceId = curingOrder.index(i+1)
+            function = 'f' + str(pieceId+1) + '()'
+            eval(function)
+        self._field_go(0,90)
+
+    def _macro_tripod(self):
+        p = 0.5
+        wl = 0.16 * p  #0.2
+        ll = 0.2 * p
+        wb = 0.9 * p
+        lb = 0.05 * p
+        wg = 0.05 * p
+        lg = 0.1 * p
+        wg2 = (wb - 4 * wg)/8
+        curingOrder = [5,6,1,3,2,4]
+
+        # self.rect.append([0.5-0.5*wb,0.5-0.5*lb,wb,lb])
+        # #left gaps
+        # self.rect.append([0.5-2*wg-3*wg2,0.5-0.5*lb-lg,wg,lg])
+        # self.rect.append([0.5-wg-wg2,0.5-0.5*lb-lg,wg,lg])
+        # self.rect.append([0.5       +wg2,0.5-0.5*lb-lg,wg,lg])
+        # self.rect.append([0.5+wg+3*wg2,0.5-0.5*lb-lg,wg,lg])
+        # #right gaps
+        # self.rect.append([0.5-2*wg-3*wg2,0.5+0.5*lb,wg,lg])
+        # self.rect.append([0.5-wg-wg2,0.5+0.5*lb,wg,lg])
+        # self.rect.append([0.5       +wg2,0.5+0.5*lb,wg,lg])
+        # self.rect.append([0.5+wg+3*wg2,0.5+0.5*lb,wg,lg])
+        # #left legs
+        # self.rect.append([0.5-1.5*wg-3*wg2-0.5*wl,0.5-0.5*lb-lg-ll,wl,ll])
+        # self.rect.append([0.5-0.5*wg-1*wg2-0.5*wl,0.5-0.5*lb-lg-ll,wl,ll])
+        # self.rect.append([0.5+0.5*wg+wg2-0.5*wl,0.5-0.5*lb-lg-ll,wl,ll])
+        # self.rect.append([0.5+1.5*wg+3*wg2-0.5*wl,0.5-0.5*lb-lg-ll,wl,ll])
+        # #right legs
+        # self.rect.append([0.5-1.5*wg-3*wg2-0.5*wl,0.5+0.5*lb+lg,wl,ll])
+        # self.rect.append([0.5-0.5*wg-1*wg2-0.5*wl,0.5+0.5*lb+lg,wl,ll])
+        # self.rect.append([0.5+0.5*wg+wg2-0.5*wl,0.5+0.5*lb+lg,wl,ll])
+        # self.rect.append([0.5+1.5*wg+3*wg2-0.5*wl,0.5+0.5*lb+lg,wl,ll])
+        # self._show()
+
+        ''' boundaries '''
+        self._field_go(0,0)
+        self.mm.oscPitch()
+        time.sleep(15)
+        self.mm.oscYaw()
+        time.sleep(15)
+        ''' body '''
+        self.line.append([0.5-0.5*wb,0.5-0.5*wb,0.5-0.5*lb,0.5+0.5*lb])
+        self.line.append([0.5+0.5*wb,0.5+0.5*wb,0.5-0.5*lb,0.5+0.5*lb])
+        self.line.append([0.5-0.5*wb,0.5+0.5*wb,0.5-0.5*lb,0.5-0.5*lb])
+        self.line.append([0.5-0.5*wb,0.5+0.5*wb,0.5+0.5*lb,0.5+0.5*lb])
+
+        ''' left '''
+        self.line.append([0.5-1.5*wg-3*wg2-0.5*wl,0.5-1.5*wg-3*wg2-0.5*wl,0.5-0.5*lb-lg-ll,0.5-0.5*lb-lg])
+        self.line.append([0.5-1.5*wg-3*wg2-0.5*wl,0.5-1.5*wg-3*wg2+0.5*wl,0.5-0.5*lb-lg-ll,0.5-0.5*lb-lg-ll])
+        self.line.append([0.5-1.5*wg-3*wg2+0.5*wl,0.5-1.5*wg-3*wg2+0.5*wl,0.5-0.5*lb-lg-ll,0.5-0.5*lb-lg])
+        self.line.append([0.5-1.5*wg-3*wg2+0.5*wl,0.5-1.5*wg-3*wg2+0.5*wl-wg2,0.5-0.5*lb-lg,0.5-0.5*lb-lg])
+        self.line.append([0.5-1.5*wg-3*wg2-0.5*wl,0.5-1.5*wg-3*wg2-0.5*wl+wg2,0.5-0.5*lb-lg,0.5-0.5*lb-lg])
+        self.line.append([0.5-1.5*wg-3*wg2-0.5*wl+wg2,0.5-1.5*wg-3*wg2-0.5*wl+wg2,0.5-0.5*lb-lg,0.5-0.5*lb])
+        self.line.append([0.5-1.5*wg-3*wg2+0.5*wl-wg2,0.5-1.5*wg-3*wg2+0.5*wl-wg2,0.5-0.5*lb-lg,0.5-0.5*lb])
+
+        self.line.append([0.5-0.5*wg-1*wg2-0.5*wl,0.5-0.5*wg-1*wg2-0.5*wl,0.5-0.5*lb-lg-ll,0.5-0.5*lb-lg])
+        self.line.append([0.5-0.5*wg-1*wg2-0.5*wl,0.5-0.5*wg-1*wg2+0.5*wl,0.5-0.5*lb-lg-ll,0.5-0.5*lb-lg-ll])
+        self.line.append([0.5-0.5*wg-1*wg2+0.5*wl,0.5-0.5*wg-1*wg2+0.5*wl,0.5-0.5*lb-lg-ll,0.5-0.5*lb-lg])
+        self.line.append([0.5-0.5*wg-1*wg2+0.5*wl,0.5-0.5*wg-1*wg2+0.5*wl-wg2,0.5-0.5*lb-lg,0.5-0.5*lb-lg])
+        self.line.append([0.5-0.5*wg-1*wg2-0.5*wl,0.5-0.5*wg-1*wg2-0.5*wl+wg2,0.5-0.5*lb-lg,0.5-0.5*lb-lg])
+        self.line.append([0.5-0.5*wg-1*wg2-0.5*wl+wg2,0.5-0.5*wg-1*wg2-0.5*wl+wg2,0.5-0.5*lb-lg,0.5-0.5*lb])
+        self.line.append([0.5-0.5*wg-1*wg2+0.5*wl-wg2,0.5-0.5*wg-1*wg2+0.5*wl-wg2,0.5-0.5*lb-lg,0.5-0.5*lb])
+
+        self.line.append([0.5+0.5*wg+1*wg2-0.5*wl,0.5+0.5*wg+1*wg2-0.5*wl,0.5-0.5*lb-lg-ll,0.5-0.5*lb-lg])
+        self.line.append([0.5+0.5*wg+1*wg2-0.5*wl,0.5+0.5*wg+1*wg2+0.5*wl,0.5-0.5*lb-lg-ll,0.5-0.5*lb-lg-ll])
+        self.line.append([0.5+0.5*wg+1*wg2+0.5*wl,0.5+0.5*wg+1*wg2+0.5*wl,0.5-0.5*lb-lg-ll,0.5-0.5*lb-lg])
+        self.line.append([0.5+0.5*wg+1*wg2+0.5*wl,0.5+0.5*wg+1*wg2+0.5*wl-wg2,0.5-0.5*lb-lg,0.5-0.5*lb-lg])
+        self.line.append([0.5+0.5*wg+1*wg2-0.5*wl,0.5+0.5*wg+1*wg2-0.5*wl+wg2,0.5-0.5*lb-lg,0.5-0.5*lb-lg])
+        self.line.append([0.5+0.5*wg+1*wg2-0.5*wl+wg2,0.5+0.5*wg+1*wg2-0.5*wl+wg2,0.5-0.5*lb-lg,0.5-0.5*lb])
+        self.line.append([0.5+0.5*wg+1*wg2+0.5*wl-wg2,0.5+0.5*wg+1*wg2+0.5*wl-wg2,0.5-0.5*lb-lg,0.5-0.5*lb])
+
+        self.line.append([0.5+1.5*wg+3*wg2-0.5*wl,0.5+1.5*wg+3*wg2-0.5*wl,0.5-0.5*lb-lg-ll,0.5-0.5*lb-lg])
+        self.line.append([0.5+1.5*wg+3*wg2-0.5*wl,0.5+1.5*wg+3*wg2+0.5*wl,0.5-0.5*lb-lg-ll,0.5-0.5*lb-lg-ll])
+        self.line.append([0.5+1.5*wg+3*wg2+0.5*wl,0.5+1.5*wg+3*wg2+0.5*wl,0.5-0.5*lb-lg-ll,0.5-0.5*lb-lg])
+        self.line.append([0.5+1.5*wg+3*wg2+0.5*wl,0.5+1.5*wg+3*wg2+0.5*wl-wg2,0.5-0.5*lb-lg,0.5-0.5*lb-lg])
+        self.line.append([0.5+1.5*wg+3*wg2-0.5*wl,0.5+1.5*wg+3*wg2-0.5*wl+wg2,0.5-0.5*lb-lg,0.5-0.5*lb-lg])
+        self.line.append([0.5+1.5*wg+3*wg2-0.5*wl+wg2,0.5+1.5*wg+3*wg2-0.5*wl+wg2,0.5-0.5*lb-lg,0.5-0.5*lb])
+        self.line.append([0.5+1.5*wg+3*wg2+0.5*wl-wg2,0.5+1.5*wg+3*wg2+0.5*wl-wg2,0.5-0.5*lb-lg,0.5-0.5*lb])
+
+        ''' right '''
+        self.line.append([0.5-1.5*wg-3*wg2-0.5*wl,0.5-1.5*wg-3*wg2+0.5*wl,0.5+0.5*lb+lg+ll,0.5+0.5*lb+lg+ll])
+        self.line.append([0.5-1.5*wg-3*wg2-0.5*wl,0.5-1.5*wg-3*wg2-0.5*wl,0.5+0.5*lb+lg+ll,0.5+0.5*lb+lg])
+        self.line.append([0.5-1.5*wg-3*wg2+0.5*wl,0.5-1.5*wg-3*wg2+0.5*wl,0.5+0.5*lb+lg+ll,0.5+0.5*lb+lg])
+        self.line.append([0.5-1.5*wg-3*wg2+0.5*wl,0.5-1.5*wg-3*wg2+0.5*wl-wg2,0.5+0.5*lb+lg,0.5+0.5*lb+lg])
+        self.line.append([0.5-1.5*wg-3*wg2-0.5*wl,0.5-1.5*wg-3*wg2-0.5*wl+wg2,0.5+0.5*lb+lg,0.5+0.5*lb+lg])
+        self.line.append([0.5-1.5*wg-3*wg2-0.5*wl+wg2,0.5-1.5*wg-3*wg2-0.5*wl+wg2,0.5+0.5*lb+lg,0.5+0.5*lb])
+        self.line.append([0.5-1.5*wg-3*wg2+0.5*wl-wg2,0.5-1.5*wg-3*wg2+0.5*wl-wg2,0.5+0.5*lb+lg,0.5+0.5*lb])
+
+        self.line.append([0.5-0.5*wg-1*wg2-0.5*wl,0.5-0.5*wg-1*wg2+0.5*wl,0.5+0.5*lb+lg+ll,0.5+0.5*lb+lg+ll])
+        self.line.append([0.5-0.5*wg-1*wg2-0.5*wl,0.5-0.5*wg-1*wg2-0.5*wl,0.5+0.5*lb+lg+ll,0.5+0.5*lb+lg])
+        self.line.append([0.5-0.5*wg-1*wg2+0.5*wl,0.5-0.5*wg-1*wg2+0.5*wl,0.5+0.5*lb+lg+ll,0.5+0.5*lb+lg])
+        self.line.append([0.5-0.5*wg-1*wg2+0.5*wl,0.5-0.5*wg-1*wg2+0.5*wl-wg2,0.5+0.5*lb+lg,0.5+0.5*lb+lg])
+        self.line.append([0.5-0.5*wg-1*wg2-0.5*wl,0.5-0.5*wg-1*wg2-0.5*wl+wg2,0.5+0.5*lb+lg,0.5+0.5*lb+lg])
+        self.line.append([0.5-0.5*wg-1*wg2-0.5*wl+wg2,0.5-0.5*wg-1*wg2-0.5*wl+wg2,0.5+0.5*lb+lg,0.5+0.5*lb])
+        self.line.append([0.5-0.5*wg-1*wg2+0.5*wl-wg2,0.5-0.5*wg-1*wg2+0.5*wl-wg2,0.5+0.5*lb+lg,0.5+0.5*lb])
+
+        self.line.append([0.5+0.5*wg+1*wg2-0.5*wl,0.5+0.5*wg+1*wg2+0.5*wl,0.5+0.5*lb+lg+ll,0.5+0.5*lb+lg+ll])
+        self.line.append([0.5+0.5*wg+1*wg2-0.5*wl,0.5+0.5*wg+1*wg2-0.5*wl,0.5+0.5*lb+lg+ll,0.5+0.5*lb+lg])
+        self.line.append([0.5+0.5*wg+1*wg2+0.5*wl,0.5+0.5*wg+1*wg2+0.5*wl,0.5+0.5*lb+lg+ll,0.5+0.5*lb+lg])
+        self.line.append([0.5+0.5*wg+1*wg2+0.5*wl,0.5+0.5*wg+1*wg2+0.5*wl-wg2,0.5+0.5*lb+lg,0.5+0.5*lb+lg])
+        self.line.append([0.5+0.5*wg+1*wg2-0.5*wl,0.5+0.5*wg+1*wg2-0.5*wl+wg2,0.5+0.5*lb+lg,0.5+0.5*lb+lg])
+        self.line.append([0.5+0.5*wg+1*wg2-0.5*wl+wg2,0.5+0.5*wg+1*wg2-0.5*wl+wg2,0.5+0.5*lb+lg,0.5+0.5*lb])
+        self.line.append([0.5+0.5*wg+1*wg2+0.5*wl-wg2,0.5+0.5*wg+1*wg2+0.5*wl-wg2,0.5+0.5*lb+lg,0.5+0.5*lb])
+
+        self.line.append([0.5+1.5*wg+3*wg2-0.5*wl,0.5+1.5*wg+3*wg2+0.5*wl,0.5+0.5*lb+lg+ll,0.5+0.5*lb+lg+ll])
+        self.line.append([0.5+1.5*wg+3*wg2-0.5*wl,0.5+1.5*wg+3*wg2-0.5*wl,0.5+0.5*lb+lg+ll,0.5+0.5*lb+lg])
+        self.line.append([0.5+1.5*wg+3*wg2+0.5*wl,0.5+1.5*wg+3*wg2+0.5*wl,0.5+0.5*lb+lg+ll,0.5+0.5*lb+lg])
+        self.line.append([0.5+1.5*wg+3*wg2+0.5*wl,0.5+1.5*wg+3*wg2+0.5*wl-wg2,0.5+0.5*lb+lg,0.5+0.5*lb+lg])
+        self.line.append([0.5+1.5*wg+3*wg2-0.5*wl,0.5+1.5*wg+3*wg2-0.5*wl+wg2,0.5+0.5*lb+lg,0.5+0.5*lb+lg])
+        self.line.append([0.5+1.5*wg+3*wg2-0.5*wl+wg2,0.5+1.5*wg+3*wg2-0.5*wl+wg2,0.5+0.5*lb+lg,0.5+0.5*lb])
+        self.line.append([0.5+1.5*wg+3*wg2+0.5*wl-wg2,0.5+1.5*wg+3*wg2+0.5*wl-wg2,0.5+0.5*lb+lg,0.5+0.5*lb])
+        self._show()
+        self._cure(800)
+        ''' boundaries '''
+        def f1():
+            self.rect.append([0.5-2*wg-3*wg2,0.5-0.5*lb-lg,wg,lg])
+            self.rect.append([0.5-1.5*wg-3*wg2-0.5*wl,0.5-0.5*lb-lg-ll,wl,ll])
+            self.rect.append([0.5       +wg2,0.5-0.5*lb-lg,wg,lg])
+            self.rect.append([0.5+0.5*wg+wg2-0.5*wl,0.5-0.5*lb-lg-ll,wl,ll])
+            self.rect.append([0.5-2*wg-3*wg2,0.5+0.5*lb,wg,lg])
+            self.rect.append([0.5-1.5*wg-3*wg2-0.5*wl,0.5+0.5*lb+lg,wl,ll])
+            self.rect.append([0.5+wg2,0.5+0.5*lb,wg,lg])
+            # self.rect.append([0.5+0.5*wg+wg2-0.5*wl,0.5+0.5*lb+lg,wl,ll])
+            self._showCureRect(-90,90, [0.5+0.5*wg+wg2-0.5*wl,0.5+0.5*lb+lg,wl,ll],oscAzimuth=True,oscPolar=False,waitTime_s=5)
+        def f2():
+            self._field_go(90,15)
+            time.sleep(10)
+            self.rect.append([0.5-wg-wg2,0.5-0.5*lb-lg,wg,lg])
+            self.rect.append([0.5-0.5*wg-1*wg2-0.5*wl,0.5-0.5*lb-lg-ll,wl,ll])
+            self.rect.append([0.5+wg+3*wg2,0.5-0.5*lb-lg,wg,lg])
+            self.rect.append([0.5+1.5*wg+3*wg2-0.5*wl,0.5-0.5*lb-lg-ll,wl,ll])
+            self.rect.append([0.5-wg-wg2,0.5+0.5*lb,wg,lg])
+            self.rect.append([0.5-0.5*wg-1*wg2-0.5*wl,0.5+0.5*lb+lg,wl,ll])
+            self.rect.append([0.5+wg+3*wg2,0.5+0.5*lb,wg,lg])
+            # self.rect.append([0.5+1.5*wg+3*wg2-0.5*wl,0.5+0.5*lb+lg,wl,ll])
+            self._showCureRect(90,90,[0.5+1.5*wg+3*wg2-0.5*wl,0.5+0.5*lb+lg,wl,ll],oscAzimuth=True,oscPolar=False,waitTime_s=5)
+        def f3():
+            self._showCureRect(0,0,  [0.5-0.5*wb,0.5-0.5*lb,wb/4,lb],oscAzimuth=False,oscPolar=True,waitTime_s=40)
+        def f4():
+            self._showCureRect(0,180,[0.5-0.5*wb+wb/4,0.5-0.5*lb,wb/4,lb],oscAzimuth=False,oscPolar=True,waitTime_s=40)
+        def f5():
+            self._showCureRect(0,0,  [0.5-0.5*wb+2*wb/4,0.5-0.5*lb,wb/4,lb],oscAzimuth=False,oscPolar=False,waitTime_s=0)
+        def f6():
+            self._showCureRect(0,180,[0.5-0.5*wb+3*wb/4,0.5-0.5*lb,wb/4,lb],oscAzimuth=False,oscPolar=False,waitTime_s=0)
+        # def f7():
+        #     self._showCureRect(0,0,  [0.5-0.5*wb+4*wb/6,0.5-0.5*lb,wb/6,lb],oscAzimuth=False,oscPolar=False,waitTime_s=0)
+        # def f8():
+        #     self._showCureRect(0,180,[0.5-0.5*wb+5*wb/6,0.5-0.5*lb,wb/6,lb],oscAzimuth=False,oscPolar=False,waitTime_s=0)
+
+        for i in range(len(curingOrder)):
+            pieceId = curingOrder.index(i+1)
+            function = 'f' + str(pieceId+1) + '()'
+            eval(function)
+        self._field_go(0,90)
+
+    def _macro_accordion(self,num):
+        p = 0.8
+        l = 0.5 / num * p
+        w = 0.6 * p
+        for i in range(num):
+            self.rect.append([0.5-0.5*w,0.5-l*num + i * 2 * l,w,l])
+        self._showCureRect(90,90,    [0.5-0.5*w,0.5-l*num,w,l],oscAzimuth=True,oscPolar=False,waitTime_s=15)
+        self._field_go(-90,15)
+        time.sleep(10)
+        for i in range(num):
+            self.rect.append([0.5-0.5*w,0.5-l*num + l + i * 2 * l,w,l])
+        self._showCureRect(-90,90,   [0.5-0.5*w,0.5-l*num + l,w,l],oscAzimuth=True,oscPolar=False,waitTime_s=15)
+
+    def _macro_capsule(self):
+        p = 0.6
+        w_body = 0.8 * p
+        w = 0.25 * p
+        w_hatch = 0.1 * p
+        l_body = 0.4 * p
+        l = 0.12 * p
+        curingOrder = [1,4,2,5,3,6]
+
+        # ''' boundaries '''
+        # self.line.append([0.5-0.5*w,0.5+0.5*w,0.5-0.5*l3-l2-l1,0.5-0.5*l3-l2-l1])
+        # self.line.append([0.5-0.5*w,0.5+0.5*w,0.5+0.5*l3+l2+l1,0.5+0.5*l3+l2+l1])
+        # self.line.append([0.5-0.5*w,0.5-0.5*w,0.5-0.5*l3-l2-l1,0.5+0.5*l3+l2+l1])
+        # self.line.append([0.5+0.5*w,0.5+0.5*w,0.5-0.5*l3-l2-l1,0.5+0.5*l3+l2+l1])
+        # self.line.append([0.5-0.5*w,0.5+0.5*w,0.5-0.5*l3-l2   ,0.5-0.5*l3-l2   ])
+        # self.line.append([0.5-0.5*w,0.5+0.5*w,0.5-0.5*l3      ,0.5-0.5*l3      ])
+        # self.line.append([0.5-0.5*w,0.5+0.5*w,0.5+0.5*l3      ,0.5+0.5*l3      ])
+        # self.line.append([0.5-0.5*w,0.5+0.5*w,0.5+0.5*l3+l2   ,0.5+0.5*l3+l2   ])
+        # self._show()
+        # self._cure(800)
+        # ''' boundaries '''
+        def f1(): self._showCureRect(0,0, [0.5-0.5*w_body,0.5-(l_body+5*l),w_body,l_body],oscAzimuth=False,oscPolar=True,waitTime_s=40)
+        def f2():
+            self._field_go(90,15)
+            time.sleep(10)
+            self._showCureRect(90,90,    [0.5-0.5*w,0.5-(l_body+5*l)+l_body,w,l],oscAzimuth=True,oscPolar=False,waitTime_s=5)
+        def f3(): self._showCureRect(0,0,        [0.5-0.5*w,0.5-(l_body+5*l)+l_body+l,w,l],oscAzimuth=False,oscPolar=False,waitTime_s=0)
+        def f4(): self._showCureRect(90,90,    [0.5-0.5*w,0.5-(l_body+5*l)+l_body+l*2,w,l],oscAzimuth=False,oscPolar=False,waitTime_s=0)
+        def f5(): self._showCureRect(0,180,  [0.5-0.5*w,0.5-(l_body+5*l)+l_body+l*3,w,l],oscAzimuth=False,oscPolar=True,waitTime_s=40)
+        def f6():
+            self._field_go(-90,15)
+            time.sleep(10)
+            self._showCureRect(-90,90,       [0.5-0.5*w_hatch,0.5-(l_body+5*l)+l_body+l*4,w_hatch,l],oscAzimuth=True,oscPolar=False,waitTime_s=10)
+
+        for i in range(len(curingOrder)):
+            pieceId = curingOrder.index(i+1)
+            function = 'f' + str(pieceId+1) + '()'
+            eval(function)
+        self._field_go(0,90)
+
+    def _macro_capsule_twoarm(self):
+        p = 0.55 #.8
+        w_body = 0.7 * p
+        w = 0.3 * p
+        l_body = 0.25 * p
+        l3 = 0.12 * p
+        l2 = 0.15 * p
+        l1 = 0.2 * p
+        center_a = 0.001 #0.09
+        curingOrder = [5,7,2,3,4,6,8,1]
+
+        # ''' boundaries '''
+        self._field_go(0,0)
+        self.mm.oscPitch()
+        time.sleep(15)
+        self.mm.oscYaw()
+        time.sleep(15)
+        self.line.append([0.5-0.5*center_a,0.5-0.5*center_a,0.5+0.5*center_a,0.5-0.5*center_a])
+        self.line.append([0.5+0.5*center_a,0.5+0.5*center_a,0.5+0.5*center_a,0.5-0.5*center_a])
+        self.line.append([0.5-0.5*center_a,0.5+0.5*center_a,0.5-0.5*center_a,0.5-0.5*center_a])
+        self.line.append([0.5-0.5*center_a,0.5+0.5*center_a,0.5+0.5*center_a,0.5+0.5*center_a])
+        self._show()
+        self._cure(800)
+        # ''' boundaries '''
+        def f1():
+            self._field_go(90,15)
+            time.sleep(10)
+            self._showCureRect(90,90, [0.5-0.5*w,0.5-0.5*l_body-l1-l2-l3,w,l1],oscAzimuth=True,oscPolar=False,waitTime_s=5)
+        def f2():
+            self._field_go(-90,15)
+            time.sleep(10)
+            self._showCureRect(-90,90,    [0.5-0.5*w,0.5-0.5*l_body-l2-l3,w,l2],oscAzimuth=True,oscPolar=False,waitTime_s=10)
+        def f3(): self._showCureRect(0,0,        [0.5-0.5*w,0.5-0.5*l_body-l3,w,l3],oscAzimuth=True,oscPolar=True,waitTime_s=40)
+        def f4(): self._showCureRect(0,0,    [0.5-0.5*w_body,0.5-0.5*l_body,w_body,l_body],oscAzimuth=False,oscPolar=False,waitTime_s=0)
+        def f5(): self._showCureRect(0,0,  [0.5-0.5*w,0.5+0.5*l_body,w,l3],oscAzimuth=False,oscPolar=False,waitTime_s=0)
+        def f6():
+            self._showCureRect(90,90,       [0.5-0.5*w,0.5+0.5*l_body+l3,w,l2],oscAzimuth=False,oscPolar=False,waitTime_s=0)
+        def f7():
+            self._showCureRect(-90,90,       [0.5-0.5*w,0.5+0.5*l_body+l3+l2,w,l1],oscAzimuth=False,oscPolar=False,waitTime_s=0)
+        def f8(): #center block
+            self._showCureRect(90,90,       [0.5-0.5*center_a,0.5-0.5*center_a,center_a,center_a],oscAzimuth=True,oscPolar=False,waitTime_s=5)
+        for i in range(len(curingOrder)):
+            pieceId = curingOrder.index(i+1)
+            function = 'f' + str(pieceId+1) + '()'
+            eval(function)
+        self._field_go(0,90)
+
+    def _macro_hatch(self):
+        p = 0.6
+        w = 0.48 * p
+        w_hatch = 0.4 * p #0.15
+        l1 = 0.6 * p
+        l2 = 0.2 * p
+        l3 = 0.09 * p
+        curingOrder = [2,3,1]
+
+        def f1(): self._showCureRect(90,20,   [0.5-0.5*w,0.5-0.5*(l1+l2+l3),w,l1],oscAzimuth=True,oscPolar=True,waitTime_s=35)
+        def f2(): self._showCureRect(90,90, [0.5-0.5*w,0.5-0.5*(l1+l2+l3)+l1,w,l2],oscAzimuth=True,oscPolar=False,waitTime_s=10)
+        def f3(): self._showCureRect(0,180, [0.5-0.5*w_hatch,0.5-0.5*(l1+l2+l3)+l1+l2,w_hatch,l3],oscAzimuth=False,oscPolar=True,waitTime_s=35)
+        for i in range(len(curingOrder)):
+            pieceId = curingOrder.index(i+1)
+            function = 'f' + str(pieceId+1) + '()'
+            eval(function)
+        self._field_go(0,90)
+
+    def _macro_hatchneo(self):
+        p = 0.6
+        w_latch = 0.15 * p
+        w_arm = 0.2 * p
+        w_base = 0.6 * p
+        w = w_latch + w_arm + w_base
+        l = 0.48 * p
+        l_latch = 0.12 * p
+        curingOrder = [1,2,3]
+
+        ''' boundary '''
+        self._field_go(0,0)
+        self.mm.oscPitch()
+        time.sleep(15)
+        self.mm.oscYaw()
+        time.sleep(15)
+        self.line.append([0.5+0.5*w-w_latch,0.5+0.5*w-w_latch,0.5-0.5*l_latch,0.5+0.5*l_latch])
+        self.line.append([0.5+0.5*w-w_latch-w_arm,0.5+0.5*w-w_latch-w_arm,0.5-0.5*l,0.5+0.5*l])
+        self.line.append([0.5+0.5*w-w_latch-2.5*w_arm,0.5+0.5*w-w_latch-2.5*w_arm,0.5-0.5*l_latch,0.5+0.5*l_latch])
+        self.line.append([0.5+0.5*w-w_latch-2.5*w_arm-w_latch,0.5+0.5*w-w_latch-2.5*w_arm-w_latch,0.5-0.5*l_latch,0.5+0.5*l_latch])
+        self.line.append([0.5+0.5*w-w_latch-2.5*w_arm,0.5+0.5*w-w_latch-2.5*w_arm-w_latch,0.5-0.5*l_latch,0.5-0.5*l_latch])
+        self.line.append([0.5+0.5*w-w_latch-2.5*w_arm,0.5+0.5*w-w_latch-2.5*w_arm-w_latch,0.5+0.5*l_latch,0.5+0.5*l_latch])
+        self._show()
+        self._cure(800)
+
+        def f1():
+            self.rect.append([0.5+0.5*w-w_latch-2.5*w_arm,0.5-0.5*l_latch,w_latch,l_latch])
+            self._showCureRect(0,90,  [0.5+0.5*w-w_latch,0.5-0.5*l_latch,w_latch,l_latch],oscAzimuth=True,oscPolar=False,waitTime_s=10)
+        def f2():
+            self._showCureRect(0,0, [0.5-0.5*w,0.5-0.5*l,w_base,l],oscAzimuth=True,oscPolar=True,waitTime_s=40)
+        def f3():
+            self._field_go(-90,15)
+            time.sleep(10)
+            self._showCureRect(-90,90, [0.5+0.5*w-w_latch-w_arm,0.5-0.5*l,w_arm,l],oscAzimuth=True,oscPolar=True,waitTime_s=35)
+        for i in range(len(curingOrder)):
+            pieceId = curingOrder.index(i+1)
+            function = 'f' + str(pieceId+1) + '()'
+            eval(function)
+        self._field_go(0,90)
+
     def _macro_gripper(self):
-        p = 0.85
+        p = 0.6
         w = 0.48 * p
         l1 = 0.25 * p
         l2 = 0.23 * p
@@ -121,16 +952,134 @@ class TextProcess(object):
         ''' l1   l2   l3   l2   l1 '''  # length
         ''' L150 L120 U    R120 R150  '''  # magnetization
         ''' 2    3    1    5    4  '''  # curingOrder
+
+        ''' boundaries '''
+        self.line.append([0.5-0.5*w,0.5+0.5*w,0.5-0.5*l3-l2-l1,0.5-0.5*l3-l2-l1])
+        self.line.append([0.5-0.5*w,0.5+0.5*w,0.5+0.5*l3+l2+l1,0.5+0.5*l3+l2+l1])
+        self.line.append([0.5-0.5*w,0.5-0.5*w,0.5-0.5*l3-l2-l1,0.5+0.5*l3+l2+l1])
+        self.line.append([0.5+0.5*w,0.5+0.5*w,0.5-0.5*l3-l2-l1,0.5+0.5*l3+l2+l1])
+        self.line.append([0.5-0.5*w,0.5+0.5*w,0.5-0.5*l3-l2   ,0.5-0.5*l3-l2   ])
+        self.line.append([0.5-0.5*w,0.5+0.5*w,0.5-0.5*l3      ,0.5-0.5*l3      ])
+        self.line.append([0.5-0.5*w,0.5+0.5*w,0.5+0.5*l3      ,0.5+0.5*l3      ])
+        self.line.append([0.5-0.5*w,0.5+0.5*w,0.5+0.5*l3+l2   ,0.5+0.5*l3+l2   ])
+        self._show()
+        self._cure(800)
+        ''' boundaries '''
         def f1(): self._showCureRect(-90,150+15, [0.5-0.5*w,0.5-0.5*l3-l2-l1,w,l1],oscAzimuth=False,oscPolar=True,waitTime_s=120)
         def f2(): self._showCureRect(-90,120,    [0.5-0.5*w,0.5-0.5*l3-l2,   w,l2],oscAzimuth=False,oscPolar=False,waitTime_s=40)
         def f3(): self._showCureRect(0,0,        [0.5-0.5*w,0.5-0.5*l3,      w,l3],oscAzimuth=False,oscPolar=True,waitTime_s=120)
         def f4(): self._showCureRect(90,120,     [0.5-0.5*w,0.5+0.5*l3,      w,l2],oscAzimuth=False,oscPolar=False,waitTime_s=40)
         def f5(): self._showCureRect(90,150+15,  [0.5-0.5*w,0.5+0.5*l3+l2,   w,l1],oscAzimuth=False,oscPolar=True,waitTime_s=120)
-        for i in range(5):
+        for i in range(len(curingOrder)):
             pieceId = curingOrder.index(i+1)
             function = 'f' + str(pieceId+1) + '()'
             eval(function)
         self._field_go(0,90)
+
+    def _macro_gripperhinge(self):
+        p = 0.6
+        w = 0.48 * p
+        l1 = 0.25 * p
+        l2 = 0.23 * p
+        l3 = 0.23 * p
+        whinge = 0.5 * w
+        lhinge = 0.1 * w
+        w_rest = 0.5 * (w - whinge)
+        curingOrder = [2,3,1,5,4]
+        ''' 1    2    3    4    5  '''  # pieceId
+        ''' l1   l2   l3   l2   l1 '''  # length
+        ''' L150 L120 U    R120 R150  '''  # magnetization
+        ''' 2    3    1    5    4  '''  # curingOrder
+
+        ''' boundaries '''
+        # outer boundary
+        self.line.append([0.5-0.5*w,0.5+0.5*w,0.5-0.5*l3-l2-l1,0.5-0.5*l3-l2-l1])
+        self.line.append([0.5-0.5*w,0.5+0.5*w,0.5+0.5*l3+l2+l1,0.5+0.5*l3+l2+l1])
+        self.line.append([0.5-0.5*w,0.5-0.5*w,0.5-0.5*l3-l2-l1,0.5+0.5*l3+l2+l1])
+        self.line.append([0.5+0.5*w,0.5+0.5*w,0.5-0.5*l3-l2-l1,0.5+0.5*l3+l2+l1])
+        # boundary between piece #1 and #2
+        self.line.append([0.5-0.5*w,0.5-0.5*whinge,0.5-0.5*l3-l2,0.5-0.5*l3-l2])
+        self.line.append([0.5+0.5*whinge,0.5+0.5*w,0.5-0.5*l3-l2,0.5-0.5*l3-l2])
+        self.line.append([0.5-0.5*whinge,0.5-0.5*whinge,0.5-0.5*l3-l2-0.5*lhinge,0.5-0.5*l3-l2+0.5*lhinge])
+        self.line.append([0.5+0.5*whinge,0.5+0.5*whinge,0.5-0.5*l3-l2-0.5*lhinge,0.5-0.5*l3-l2+0.5*lhinge])
+        self.line.append([0.5-0.5*whinge,0.5+0.5*whinge,0.5-0.5*l3-l2-0.5*lhinge,0.5-0.5*l3-l2-0.5*lhinge])
+        self.line.append([0.5-0.5*whinge,0.5+0.5*whinge,0.5-0.5*l3-l2+0.5*lhinge,0.5-0.5*l3-l2+0.5*lhinge])
+        # boundary between piece #2 and #3
+        self.line.append([0.5-0.5*w,0.5-0.5*whinge,0.5-0.5*l3,0.5-0.5*l3])
+        self.line.append([0.5+0.5*whinge,0.5+0.5*w,0.5-0.5*l3,0.5-0.5*l3])
+        self.line.append([0.5-0.5*whinge,0.5-0.5*whinge,0.5-0.5*l3-0.5*lhinge,0.5-0.5*l3+0.5*lhinge])
+        self.line.append([0.5+0.5*whinge,0.5+0.5*whinge,0.5-0.5*l3-0.5*lhinge,0.5-0.5*l3+0.5*lhinge])
+        self.line.append([0.5-0.5*whinge,0.5+0.5*whinge,0.5-0.5*l3-0.5*lhinge,0.5-0.5*l3-0.5*lhinge])
+        self.line.append([0.5-0.5*whinge,0.5+0.5*whinge,0.5-0.5*l3+0.5*lhinge,0.5-0.5*l3+0.5*lhinge])
+        # boundary between piece #2 and #3
+        self.line.append([0.5-0.5*w,0.5-0.5*whinge,0.5+0.5*l3,0.5+0.5*l3])
+        self.line.append([0.5+0.5*whinge,0.5+0.5*w,0.5+0.5*l3,0.5+0.5*l3])
+        self.line.append([0.5-0.5*whinge,0.5-0.5*whinge,0.5+0.5*l3-0.5*lhinge,0.5+0.5*l3+0.5*lhinge])
+        self.line.append([0.5+0.5*whinge,0.5+0.5*whinge,0.5+0.5*l3-0.5*lhinge,0.5+0.5*l3+0.5*lhinge])
+        self.line.append([0.5-0.5*whinge,0.5+0.5*whinge,0.5+0.5*l3-0.5*lhinge,0.5+0.5*l3-0.5*lhinge])
+        self.line.append([0.5-0.5*whinge,0.5+0.5*whinge,0.5+0.5*l3+0.5*lhinge,0.5+0.5*l3+0.5*lhinge])
+        # boundary between piece #4 and #5
+        self.line.append([0.5-0.5*w,0.5-0.5*whinge,0.5+0.5*l3+l2,0.5+0.5*l3+l2])
+        self.line.append([0.5+0.5*whinge,0.5+0.5*w,0.5+0.5*l3+l2,0.5+0.5*l3+l2])
+        self.line.append([0.5-0.5*whinge,0.5-0.5*whinge,0.5+0.5*l3+l2-0.5*lhinge,0.5+0.5*l3+l2+0.5*lhinge])
+        self.line.append([0.5+0.5*whinge,0.5+0.5*whinge,0.5+0.5*l3+l2-0.5*lhinge,0.5+0.5*l3+l2+0.5*lhinge])
+        self.line.append([0.5-0.5*whinge,0.5+0.5*whinge,0.5+0.5*l3+l2-0.5*lhinge,0.5+0.5*l3+l2-0.5*lhinge])
+        self.line.append([0.5-0.5*whinge,0.5+0.5*whinge,0.5+0.5*l3+l2+0.5*lhinge,0.5+0.5*l3+l2+0.5*lhinge])
+
+        self._show()
+        self._cure(800)
+        ''' boundaries '''
+        def f1():
+            self.rect.append([0.5+0.5*whinge,         0.5-0.5*l3-l2-0.5*lhinge, w_rest,0.5*lhinge])
+            self.rect.append([0.5-0.5*whinge-w_rest,  0.5-0.5*l3-l2-0.5*lhinge, w_rest,0.5*lhinge])
+            self._showCureRect(-90,150+15, [0.5-0.5*w,0.5-0.5*l3-l2-l1,w,l1-0.5*lhinge],oscAzimuth=False,oscPolar=True,waitTime_s=120)
+        def f2():
+            self.rect.append([0.5+0.5*whinge,         0.5-0.5*l3-l2,            w_rest,0.5*lhinge])
+            self.rect.append([0.5-0.5*whinge-w_rest,  0.5-0.5*l3-l2,            w_rest,0.5*lhinge])
+            self.rect.append([0.5+0.5*whinge,         0.5-0.5*l3-0.5*lhinge,    w_rest,0.5*lhinge])
+            self.rect.append([0.5-0.5*whinge-w_rest,  0.5-0.5*l3-0.5*lhinge,    w_rest,0.5*lhinge])
+            self._showCureRect(-90,120,    [0.5-0.5*w,0.5-0.5*l3-l2,   w,l2],oscAzimuth=False,oscPolar=False,waitTime_s=40)
+        def f3():
+            self.rect.append([0.5+0.5*whinge,         0.5-0.5*l3,               w_rest,0.5*lhinge])
+            self.rect.append([0.5-0.5*whinge-w_rest,  0.5-0.5*l3,               w_rest,0.5*lhinge])
+            self.rect.append([0.5+0.5*whinge,         0.5+0.5*l3-0.5*lhinge,    w_rest,0.5*lhinge])
+            self.rect.append([0.5-0.5*whinge-w_rest,  0.5+0.5*l3-0.5*lhinge,    w_rest,0.5*lhinge])
+            self._showCureRect(0,0,        [0.5-0.5*w,0.5-0.5*l3,      w,l3],oscAzimuth=False,oscPolar=True,waitTime_s=120)
+        def f4():
+            self.rect.append([0.5+0.5*whinge,         0.5+0.5*l3,               w_rest,0.5*lhinge])
+            self.rect.append([0.5-0.5*whinge-w_rest,  0.5+0.5*l3,               w_rest,0.5*lhinge])
+            self.rect.append([0.5+0.5*whinge,         0.5+0.5*l3+l2-0.5*lhinge, w_rest,0.5*lhinge])
+            self.rect.append([0.5-0.5*whinge-w_rest,  0.5+0.5*l3+l2-0.5*lhinge, w_rest,0.5*lhinge])
+            self._showCureRect(90,120,     [0.5-0.5*w,0.5+0.5*l3,      w,l2],oscAzimuth=False,oscPolar=False,waitTime_s=40)
+        def f5():
+            self.rect.append([0.5+0.5*whinge,         0.5+0.5*l3+l2,               w_rest,0.5*lhinge])
+            self.rect.append([0.5-0.5*whinge-w_rest,  0.5+0.5*l3+l2,               w_rest,0.5*lhinge])
+            self._showCureRect(90,150+15,  [0.5-0.5*w,0.5+0.5*l3+l2,   w,l1],oscAzimuth=False,oscPolar=True,waitTime_s=120)
+        for i in range(len(curingOrder)):
+            pieceId = curingOrder.index(i+1)
+            function = 'f' + str(pieceId+1) + '()'
+            eval(function)
+        self._field_go(0,90)
+
+    def _macro_twist(self):
+        p = 0.4
+        w = 0.3 * p
+        l1 = 0.8 * p
+        l2 = 0.5 * p
+        curingOrder = [2,1,3]
+        def f1():
+            self._field_go(180,15)
+            time.sleep(10)
+            self._showCureRect(180,90,   [0.5-0.5*l1,0.5-0.5*l2-w, l1, w],oscAzimuth=True,oscPolar=False,waitTime_s=0)
+        def f2(): self._showCureRect(0,0,     [0.5-0.5*w,0.5-0.5*l2,    w,  l2],oscAzimuth=False,oscPolar=True,waitTime_s=20)
+        def f3():
+            self._field_go(0,15)
+            time.sleep(10)
+            self._showCureRect(0,90,  [0.5-0.5*l1,0.5+0.5*l2,   l1, w],oscAzimuth=True,oscPolar=False,waitTime_s=5)
+        for i in range(len(curingOrder)):
+            pieceId = curingOrder.index(i+1)
+            function = 'f' + str(pieceId+1) + '()'
+            eval(function)
 
     def _macro_swimmer(self):
         p = 0.85
@@ -143,24 +1092,451 @@ class TextProcess(object):
         ''' l1  l2  l3  l2  l1 '''  # length
         ''' R   U   L   D   R  '''  # magnetization
         ''' 4   1   3   2   5  '''  # curingOrder
+
+        ''' boundaries '''
+        self._field_go(0,0)
+        self.mm.oscPitch()
+        time.sleep(15)
+        self.mm.oscYaw()
+        time.sleep(15)
+        self.line.append([0.5-0.5*w,0.5+0.5*w,0.5-0.5*l3-l2-l1,0.5-0.5*l3-l2-l1])
+        self.line.append([0.5-0.5*w,0.5+0.5*w,0.5+0.5*l3+l2+l1,0.5+0.5*l3+l2+l1])
+        self.line.append([0.5-0.5*w,0.5-0.5*w,0.5-0.5*l3-l2-l1,0.5+0.5*l3+l2+l1])
+        self.line.append([0.5+0.5*w,0.5+0.5*w,0.5-0.5*l3-l2-l1,0.5+0.5*l3+l2+l1])
+        self.line.append([0.5-0.5*w,0.5+0.5*w,0.5-0.5*l3-l2   ,0.5-0.5*l3-l2   ])
+        self.line.append([0.5-0.5*w,0.5+0.5*w,0.5-0.5*l3      ,0.5-0.5*l3      ])
+        self.line.append([0.5-0.5*w,0.5+0.5*w,0.5+0.5*l3      ,0.5+0.5*l3      ])
+        self.line.append([0.5-0.5*w,0.5+0.5*w,0.5+0.5*l3+l2   ,0.5+0.5*l3+l2   ])
+        self._show()
+        self._cure(800)
+        ''' boundaries '''
         def f1():
             self._field_go(90,15)
             time.sleep(10)
             self._showCureRect(90,90,         [0.5-0.5*w,0.5-0.5*l3-l2-l1,w,l1],oscAzimuth=True,oscPolar=False,waitTime_s=0)
-        def f2(): self._showCureRect(0,0,     [0.5-0.5*w,0.5-0.5*l3-l2,   w,l2],oscAzimuth=False,oscPolar=True,waitTime_s=120)
+        def f2(): self._showCureRect(0,0,     [0.5-0.5*w,0.5-0.5*l3-l2,   w,l2],oscAzimuth=False,oscPolar=True,waitTime_s=20)
         def f3():
             self._field_go(-90,15)
             time.sleep(10)
             self._showCureRect(-90,90,  [0.5-0.5*w,0.5-0.5*l3,      w,l3],oscAzimuth=True,oscPolar=False,waitTime_s=5)
-        def f4(): self._showCureRect(0,180,   [0.5-0.5*w,0.5+0.5*l3,      w,l2],oscAzimuth=False,oscPolar=True,waitTime_s=120)
+        def f4(): self._showCureRect(0,180,   [0.5-0.5*w,0.5+0.5*l3,      w,l2],oscAzimuth=False,oscPolar=True,waitTime_s=20)
         def f5(): self._showCureRect(90,90,   [0.5-0.5*w,0.5+0.5*l3+l2,   w,l1],oscAzimuth=False,oscPolar=False,waitTime_s=10)
-        for i in range(5):
+        for i in range(len(curingOrder)):
+            pieceId = curingOrder.index(i+1)
+            function = 'f' + str(pieceId+1) + '()'
+            eval(function)
+
+    def _macro_cylinder_r(self):
+        p = 0.65
+        w = 0.48 * p
+        l1 = 0.25 * p
+        l2 = 0.23 * p
+        l3 = 0.23 * p
+        curingOrder = [4,1,3,2,5]
+        ''' 1   2   3   4   5  '''  # pieceId
+        ''' l1  l2  l3  l2  l1 '''  # length
+        ''' R   U   L   D   R  '''  # magnetization
+        ''' 4   1   3   2   5  '''  # curingOrder
+
+        ''' boundaries '''
+        # self._field_go(0,0)
+        # self.mm.oscPitch()
+        # time.sleep(15)
+        # self.mm.oscYaw()
+        # time.sleep(15)
+        # self.line.append([0.5-0.5*w,0.5+0.5*w,0.5-0.5*l3-l2-l1,0.5-0.5*l3-l2-l1])
+        # self.line.append([0.5-0.5*w,0.5+0.5*w,0.5+0.5*l3+l2+l1,0.5+0.5*l3+l2+l1])
+        # self.line.append([0.5-0.5*w,0.5-0.5*w,0.5-0.5*l3-l2-l1,0.5+0.5*l3+l2+l1])
+        # self.line.append([0.5+0.5*w,0.5+0.5*w,0.5-0.5*l3-l2-l1,0.5+0.5*l3+l2+l1])
+        # self.line.append([0.5-0.5*w,0.5+0.5*w,0.5-0.5*l3-l2   ,0.5-0.5*l3-l2   ])
+        # self.line.append([0.5-0.5*w,0.5+0.5*w,0.5-0.5*l3      ,0.5-0.5*l3      ])
+        # self.line.append([0.5-0.5*w,0.5+0.5*w,0.5+0.5*l3      ,0.5+0.5*l3      ])
+        # self.line.append([0.5-0.5*w,0.5+0.5*w,0.5+0.5*l3+l2   ,0.5+0.5*l3+l2   ])
+        # self._show()
+        # self._cure(800)
+        ''' boundaries '''
+        def f1():
+            self._showCureRect(-90,90,         [0.5-0.5*w,0.5-0.5*l3-l2-l1,w,l1],oscAzimuth=True,oscPolar=False,waitTime_s=0)
+        def f2(): self._showCureRect(0,0,     [0.5-0.5*w,0.5-0.5*l3-l2,   w,l2],oscAzimuth=False,oscPolar=True,waitTime_s=20)
+        def f3():
+            self._field_go(-90,15)
+            time.sleep(10)
+            self._showCureRect(-90,90,  [0.5-0.5*w,0.5-0.5*l3,      w,l3],oscAzimuth=True,oscPolar=False,waitTime_s=5)
+        def f4(): self._showCureRect(0,180,   [0.5-0.5*w,0.5+0.5*l3,      w,l2],oscAzimuth=False,oscPolar=True,waitTime_s=20)
+        def f5():
+            self._field_go(90,15)
+            time.sleep(10)
+            self._showCureRect(90,90,   [0.5-0.5*w,0.5+0.5*l3+l2,   w,l1],oscAzimuth=True,oscPolar=False,waitTime_s=10)
+        for i in range(len(curingOrder)):
+            pieceId = curingOrder.index(i+1)
+            function = 'f' + str(pieceId+1) + '()'
+            eval(function)
+
+    def _macro_cylinder_a(self):
+        p = 0.85
+        w = 0.48 * p
+        l1 = 0.75 * p
+        l2 = 0.23 * p
+        curingOrder = [1,2]
+        ''' 1   1   1   1   2  '''  # pieceId
+        ''' l1              l2 '''  # length
+        ''' R   R   R   R   L  '''  # magnetization
+        ''' 1   1   1   1   2  '''  # curingOrder
+        ''' boundaries '''
+        self._field_go(0,0)
+        self.mm.oscPitch()
+        time.sleep(15)
+        self.mm.oscYaw()
+        time.sleep(15)
+        self.line.append([0.5-0.5*w,0.5+0.5*w,0.5-0.5*(l1+l2),0.5-0.5*(l1+l2)])
+        self.line.append([0.5-0.5*w,0.5+0.5*w,0.5+0.5*(l1+l2)-l2,0.5+0.5*(l1+l2)-l2])
+        self.line.append([0.5-0.5*w,0.5+0.5*w,0.5+0.5*(l1+l2),0.5+0.5*(l1+l2)])
+        self.line.append([0.5+0.5*w,0.5+0.5*w,0.5-0.5*(l1+l2),0.5+0.5*(l1+l2)])
+        self.line.append([0.5-0.5*w,0.5-0.5*w,0.5-0.5*(l1+l2),0.5+0.5*(l1+l2)])
+        self._show()
+        self._cure(800)
+        ''' boundaries '''
+        def f1(): self._showCureRect(180,90,[0.5-0.5*w,0.5-0.5*(l1+l2),w,l1],oscAzimuth=True,oscPolar=False,waitTime_s=0)
+        def f2():
+            self._field_go(180,15)
+            time.sleep(10)
+            self._showCureRect(0,90,[0.5-0.5*w,0.5+0.5*(l1+l2)-l2,   w,l2],oscAzimuth=True,oscPolar=False,waitTime_s=20)
+        for i in range(len(curingOrder)):
+            pieceId = curingOrder.index(i+1)
+            function = 'f' + str(pieceId+1) + '()'
+            eval(function)
+
+    def _macro_flagella(self):
+        # baseket w,l,h = 0.12 0.7 0.9
+        p = 0.45  #0.5
+        w = 0.16 * p #0.12
+        wLeg = 0.13 * p
+        l = 0.35 * p #.7
+        h = 0.9 * p # pointing down
+        g = (h - 4 * wLeg) / 3 # gap between horz pieces
+        curingOrder = [5,2,3,1,4]
+
+        ''' boundaries '''
+        # self._field_go(0,0)
+        # self.mm.oscPitch()
+        # time.sleep(15)
+        # self.mm.oscYaw()
+        # time.sleep(15)
+        # self.line.append([0.5-1.5*g-2*w,0.5-,0.5-0.5*l3-l2-l1,0.5-0.5*l3-l2-l1]) # left long vert piece
+        # self.line.append([0.5-0.5*w,0.5+0.5*w,0.5+0.5*l3+l2+l1,0.5+0.5*l3+l2+l1]) # right long hotz 1
+        # self.line.append([0.5-0.5*w,0.5-0.5*w,0.5-0.5*l3-l2-l1,0.5+0.5*l3+l2+l1]) # right long hotz 2
+        # self.line.append([0.5+0.5*w,0.5+0.5*w,0.5-0.5*l3-l2-l1,0.5+0.5*l3+l2+l1]) # right long hotz 3
+        # self.line.append([0.5-0.5*w,0.5+0.5*w,0.5-0.5*l3-l2   ,0.5-0.5*l3-l2   ]) # right long hotz 4
+        # self._show()
+        # self._cure(800)
+        ''' boundaries '''
+
+        # ''' test print '''
+        # self.rect.append([0.5-1.5*g-2*w, 0.5-(l+w)/2,   h,w])
+        # self.rect.append([0.5+1.5*g+w,   0.5-(l+w)/2+w, w,l])
+        # self.rect.append([0.5+0.5*g,     0.5-(l+w)/2+w, w,l])
+        # self.rect.append([0.5-0.5*g-w,   0.5-(l+w)/2+w, w,l])
+        # self.rect.append([0.5-1.5*g-2*w, 0.5-(l+w)/2+w, w,l])
+        # self.ring.append([0.5-1.5*g-2*w, 0.5-(l+w)/2+0.5*w,w/2,w/2*0.7])
+        # self.ring.append([0.5+1.5*g+2*w, 0.5-(l+w)/2+0.5*w,w/2,w/2*0.7])
+        # self._show()
+        # ''' test print '''
+
+        def f1():
+            self._field_go(90,15)
+            time.sleep(10)
+            self.ring.append([0.5-1.5*g-2*w, 0.5-(l+w)/2+0.5*w,w/2,w/2*0.7])
+            self.ring.append([0.5+1.5*g+2*w, 0.5-(l+w)/2+0.5*w,w/2,w/2*0.7])
+            self._showCureRect(90,90,   [0.5-1.5*g-2*wLeg, 0.5-(l+w)/2+w,   h,w],oscAzimuth=True,oscPolar=False,waitTime_s=5)
+        def f2():
+            self._showCureRect(0,180,   [0.5+1.5*g+wLeg,   0.5-(l+w)/2+w, wLeg,l],oscAzimuth=False,oscPolar=False,waitTime_s=0)
+        def f3():
+            self._showCureRect(0,0,     [0.5+0.5*g,     0.5-(l+w)/2+w, wLeg,l],oscAzimuth=True,oscPolar=True,waitTime_s=20)
+        def f4():
+            self._showCureRect(0,180,  [0.5-0.5*g-wLeg,   0.5-(l+w)/2+w, wLeg,l],oscAzimuth=True,oscPolar=True,waitTime_s=20)
+        def f5():
+            self._showCureRect(0,0,   [0.5-1.5*g-2*wLeg, 0.5-(l+w)/2+w, wLeg,l],oscAzimuth=False,oscPolar=False,waitTime_s=0)
+        for i in range(len(curingOrder)):
+            pieceId = curingOrder.index(i+1)
+            function = 'f' + str(pieceId+1) + '()'
+            eval(function)
+
+    # def _macro_flagella(self):
+    #     # baseket w,l,h = 0.12 0.7 0.9
+    #     p = 0.45  #0.5
+    #     w = 0.11 * p #0.12
+    #     wForward = 0.05 * p
+    #     wLeg = 0.13 * p
+    #     l = 0.35 * p #.7
+    #     h = 0.9 * p # pointing down
+    #     g = (h - 4 * wLeg) / 3 # gap between horz pieces
+    #     curingOrder = [5,2,3,1,4,6]
+    #
+    #     ''' boundaries '''
+    #     # self._field_go(0,0)
+    #     # self.mm.oscPitch()
+    #     # time.sleep(15)
+    #     # self.mm.oscYaw()
+    #     # time.sleep(15)
+    #     # self.line.append([0.5-1.5*g-2*w,0.5-,0.5-0.5*l3-l2-l1,0.5-0.5*l3-l2-l1]) # left long vert piece
+    #     # self.line.append([0.5-0.5*w,0.5+0.5*w,0.5+0.5*l3+l2+l1,0.5+0.5*l3+l2+l1]) # right long hotz 1
+    #     # self.line.append([0.5-0.5*w,0.5-0.5*w,0.5-0.5*l3-l2-l1,0.5+0.5*l3+l2+l1]) # right long hotz 2
+    #     # self.line.append([0.5+0.5*w,0.5+0.5*w,0.5-0.5*l3-l2-l1,0.5+0.5*l3+l2+l1]) # right long hotz 3
+    #     # self.line.append([0.5-0.5*w,0.5+0.5*w,0.5-0.5*l3-l2   ,0.5-0.5*l3-l2   ]) # right long hotz 4
+    #     # self._cure(800)
+    #     ''' boundaries '''
+    #
+    #     # ''' test print '''
+    #     # self.rect.append([0.5-1.5*g-2*w, 0.5-(l+w)/2,   h,w])
+    #     # self.rect.append([0.5+1.5*g+w,   0.5-(l+w)/2+w, w,l])
+    #     # self.rect.append([0.5+0.5*g,     0.5-(l+w)/2+w, w,l])
+    #     # self.rect.append([0.5-0.5*g-w,   0.5-(l+w)/2+w, w,l])
+    #     # self.rect.append([0.5-1.5*g-2*w, 0.5-(l+w)/2+w, w,l])
+    #     # self.ring.append([0.5-1.5*g-2*w, 0.5-(l+w)/2+0.5*w,w/2,w/2*0.7])
+    #     # self.ring.append([0.5+1.5*g+2*w, 0.5-(l+w)/2+0.5*w,w/2,w/2*0.7])
+    #     # self._show()
+    #     # ''' test print '''
+    #
+    #     def f1():
+    #         self._field_go(90,15)
+    #         time.sleep(10)
+    #         self.ring.append([0.5-1.5*g-2*w, 0.5-(l+w)/2+0.5*w,w/2,w/2*0.7])
+    #         self.ring.append([0.5+1.5*g+2*w, 0.5-(l+w)/2+0.5*w,w/2,w/2*0.7])
+    #         self._showCureRect(90,90,   [0.5-1.5*g-2*wLeg, 0.5-(l+w)/2+wForward,   h,w],oscAzimuth=True,oscPolar=False,waitTime_s=5)
+    #     def f2():
+    #         self._showCureRect(0,180,   [0.5+1.5*g+wLeg,   0.5-(l+w)/2+w+wForward, wLeg,l],oscAzimuth=False,oscPolar=False,waitTime_s=0)
+    #     def f3():
+    #         self._showCureRect(0,0,     [0.5+0.5*g,     0.5-(l+w)/2+w+wForward, wLeg,l],oscAzimuth=True,oscPolar=True,waitTime_s=20)
+    #     def f4():
+    #         self._showCureRect(0,180,  [0.5-0.5*g-wLeg,   0.5-(l+w)/2+w+wForward, wLeg,l],oscAzimuth=True,oscPolar=True,waitTime_s=20)
+    #     def f5():
+    #         self._showCureRect(0,0,   [0.5-1.5*g-2*wLeg, 0.5-(l+w)/2+w+wForward, wLeg,l],oscAzimuth=False,oscPolar=False,waitTime_s=0)
+    #     def f6():
+    #         self._field_go(180,15)
+    #         time.sleep(10)
+    #         self._showCureRect(180,90,   [0.5-1.5*g-2*wLeg, 0.5-(l+w)/2,   h,wForward],oscAzimuth=True,oscPolar=False,waitTime_s=5)
+    #     for i in range(len(curingOrder)):
+    #         pieceId = curingOrder.index(i+1)
+    #         function = 'f' + str(pieceId+1) + '()'
+    #         eval(function)
+
+    # def _macro_flagella(self):
+    #     p = 0.85
+    #     w = 0.16 * p
+    #     l = 0.7 * p
+    #     h = 0.9 * p
+    #     g = (h - 4 * w) / 3 # gap between horz pieces
+    #     curingOrder = [3,4,1,5,2]
+    #
+    #     # ''' boundaries '''
+    #     # self._field_go(0,0)
+    #     # self.mm.oscPitch()
+    #     # time.sleep(15)
+    #     # self.mm.oscYaw()
+    #     # time.sleep(15)
+    #     # self.line.append([0.5-1.5*g-2*w,0.5-,0.5-0.5*l3-l2-l1,0.5-0.5*l3-l2-l1]) # left long vert piece
+    #     # self.line.append([0.5-0.5*w,0.5+0.5*w,0.5+0.5*l3+l2+l1,0.5+0.5*l3+l2+l1]) # right long hotz 1
+    #     # self.line.append([0.5-0.5*w,0.5-0.5*w,0.5-0.5*l3-l2-l1,0.5+0.5*l3+l2+l1]) # right long hotz 2
+    #     # self.line.append([0.5+0.5*w,0.5+0.5*w,0.5-0.5*l3-l2-l1,0.5+0.5*l3+l2+l1]) # right long hotz 3
+    #     # self.line.append([0.5-0.5*w,0.5+0.5*w,0.5-0.5*l3-l2   ,0.5-0.5*l3-l2   ]) # right long hotz 4
+    #     # self._cure(800)
+    #     # ''' boundaries '''
+    #
+    #     # ''' test print '''
+    #     # self.rect.append([0.5-1.5*g-2*w, 0.5-(l+w)/2,   h,w])
+    #     # self.rect.append([0.5+1.5*g+w,   0.5-(l+w)/2+w, w,l])
+    #     # self.rect.append([0.5+0.5*g,     0.5-(l+w)/2+w, w,l])
+    #     # self.rect.append([0.5-0.5*g-w,   0.5-(l+w)/2+w, w,l])
+    #     # self.rect.append([0.5-1.5*g-2*w, 0.5-(l+w)/2+w, w,l])
+    #     # self.ring.append([0.5-1.5*g-2*w, 0.5-(l+w)/2+0.5*w,w/2,w/2*0.7])
+    #     # self.ring.append([0.5+1.5*g+2*w, 0.5-(l+w)/2+0.5*w,w/2,w/2*0.7])
+    #     # self._show()
+    #     # ''' test print '''
+    #
+    #     def f1():
+    #         self._field_go(90,175)
+    #         time.sleep(10)
+    #         self.ring.append([0.5-1.5*g-2*w, 0.5-(l+w)/2+0.5*w,w/2,w/2*0.7])
+    #         self.ring.append([0.5+1.5*g+2*w, 0.5-(l+w)/2+0.5*w,w/2,w/2*0.7])
+    #         self._showCureRect(90,90,   [0.5-1.5*g-2*w, 0.5-(l+w)/2,   h,w],oscAzimuth=True,oscPolar=False,waitTime_s=5)
+    #     def f2():
+    #         self._showCureRect(90,90,   [0.5+1.5*g+w,   0.5-(l+w)/2+w, w,l],oscAzimuth=False,oscPolar=False,waitTime_s=0)
+    #     def f3():
+    #         self._showCureRect(0,0,     [0.5+0.5*g,     0.5-(l+w)/2+w, w,l],oscAzimuth=True,oscPolar=True,waitTime_s=20)
+    #     def f4():
+    #         self._field_go(90,15)
+    #         time.sleep(10)
+    #         self._showCureRect(-90,90,  [0.5-0.5*g-w,   0.5-(l+w)/2+w, w,l],oscAzimuth=True,oscPolar=False,waitTime_s=10)
+    #     def f5():
+    #         self._showCureRect(0,180,   [0.5-1.5*g-2*w, 0.5-(l+w)/2+w, w,l],oscAzimuth=True,oscPolar=True,waitTime_s=20)
+    #     for i in range(len(curingOrder)):
+    #         pieceId = curingOrder.index(i+1)
+    #         function = 'f' + str(pieceId+1) + '()'
+    #         eval(function)
+
+    def _macro_crawler(self):
+        p = 0.6
+        r = 0.5 * p
+        w = 0.4 * p
+
+        ''' boundary '''
+        self._field_go(0,0)
+        self.mm.oscPitch()
+        time.sleep(15)
+        self.mm.oscYaw()
+        time.sleep(15)
+        self.ring.append([0.5,0.5,r,0,0,180])
+        self.ring.append([0.5,0.5,r-w,0,0,180])
+        self.ring.append([0.5,0.5,r,0,180,360])
+        self.ring.append([0.5,0.5,r-w,0,180,360])
+        self.line.append([0.5-r,0.5-r+w,0.5,0.5])
+        self.line.append([0.5+r-w,0.5+r,0.5,0.5])
+        ''' boundary '''
+        self._showCureRing(90,90,[0.5,0.5,r,w,0,180],oscAzimuth=True,oscPolar=False,waitTime_s=5)
+        self._showCureRing(-90,90,[0.5,0.5,r,w,180,360],oscAzimuth=True,oscPolar=False,waitTime_s=10)
+
+    def _macro_doghnut(self):
+        p = 0.6
+        r = 0.5 * p
+        w = 0.25 * p
+
+        ''' boundary '''
+        self._field_go(0,0)
+        self.mm.oscPitch()
+        time.sleep(15)
+        self.mm.oscYaw()
+        time.sleep(15)
+        self.ring.append([0.5,0.5,r,0,0,180])
+        self.ring.append([0.5,0.5,r-w,0,0,180])
+        self.ring.append([0.5,0.5,r,0,180,360])
+        self.ring.append([0.5,0.5,r-w,0,180,360])
+        self.line.append([0.5-r,0.5-r+w,0.5,0.5])
+        self.line.append([0.5+r-w,0.5+r,0.5,0.5])
+        self.line.append([0.5,0.5,0.5-r,0.5-r+w])
+        self.line.append([0.5,0.5,0.5+r-w,0.5+r])
+        self._show()
+        self._cure()
+        ''' boundary '''
+        self._showCureRing(-135,90,[0.5,0.5,r,w,90,180],oscAzimuth=True,oscPolar=False,waitTime_s=10)
+        self._showCureRing(135,90,[0.5,0.5,r,w,0,90],oscAzimuth=True,oscPolar=False,waitTime_s=10)
+        self._showCureRing(45,90,[0.5,0.5,r,w,270,360],oscAzimuth=True,oscPolar=False,waitTime_s=10)
+        self._showCureRing(-45,90,[0.5,0.5,r,w,180,270],oscAzimuth=True,oscPolar=False,waitTime_s=10)
+
+    def _macro_standingman(self):
+        p = 0.8
+        w = 0.2 * p
+        l = 0.35 * p
+        curingOrder = [2,3,1,4,5]
+        # pieceId (top to down, left to right)
+        ''' 1    2    3    4    5     ''' # pieceId
+        ''' 2    3    1    5    4  '''  # curingOrder
+
+        ''' boundaries '''
+        self._field_go(0,0)
+        self.mm.oscPitch()
+        time.sleep(15)
+        self.mm.oscYaw()
+        time.sleep(15)
+        self.line.append([0.5-0.5*w-l,0.5+0.5*w+l,0.5-0.5*w,0.5-0.5*w])
+        self.line.append([0.5-0.5*w-l,0.5+0.5*w+l,0.5+0.5*w,0.5+0.5*w])
+        self.line.append([0.5+0.5*w+l,0.5+0.5*w+l,0.5-0.5*w,0.5+0.5*w])
+        self.line.append([0.5-0.5*w-l,0.5-0.5*w-l,0.5-0.5*w,0.5+0.5*w])
+        self.line.append([0.5-0.5*w,0.5+0.5*w,0.5-0.5*w-l,0.5-0.5*w-l])
+        self.line.append([0.5-0.5*w,0.5+0.5*w,0.5+0.5*w+l,0.5+0.5*w+l])
+        self.line.append([0.5+0.5*w,0.5+0.5*w,0.5-0.5*w-l,0.5+0.5*w+l])
+        self.line.append([0.5-0.5*w,0.5-0.5*w,0.5-0.5*w-l,0.5+0.5*w+l])
+        self._show()
+        self._cure(800)
+        ''' boundaries '''
+        def f1():
+            self._field_go(180,15)
+            time.sleep(10)
+            self._showCureRect(180,90, [0.5+0.5*w,0.5-0.5*w,l,w],oscAzimuth=True,oscPolar=False,waitTime_s=5)
+        def f2():
+            self._field_go(90,15)
+            time.sleep(10)
+            self._showCureRect(90,90, [0.5-0.5*w,0.5-0.5*w-l,w,l],oscAzimuth=True,oscPolar=False,waitTime_s=5)
+        def f3(): self._showCureRect(0,0,    [0.5-0.5*w,0.5-0.5*w,w,w],oscAzimuth=False,oscPolar=True,waitTime_s=120)
+        def f4():
+            self._field_go(-90,15)
+            time.sleep(10)
+            self._showCureRect(-90,90,  [0.5-0.5*w,0.5+0.5*w,w,l],oscAzimuth=True,oscPolar=False,waitTime_s=5)
+        def f5():
+            self._field_go(0,15)
+            time.sleep(10)
+            self._showCureRect(0,90,   [0.5-0.5*w-l,0.5-0.5*w,l,w],oscAzimuth=True,oscPolar=False,waitTime_s=5)
+        for i in range(len(curingOrder)):
+            pieceId = curingOrder.index(i+1)
+            function = 'f' + str(pieceId+1) + '()'
+            eval(function)
+        self._field_go(0,90)
+
+    def _macro_waves(self):
+        p = 0.85
+        w = 0.48 * p
+        l1 = 0.1 * p
+        l2 = 0.3 * p
+        l3 = 0.2 * p
+        curingOrder = [2,4,1,3,5]
+        ''' 1   2   3   4   5  '''  # pieceId
+        ''' l1  l2  l3  l2  l1 '''  # length
+        ''' R   L   U   R   L  '''  # magnetization
+        ''' 4   1   3   2   5  '''  # curingOrder
+
+        ''' boundaries '''
+        self._field_go(0,0)
+        self.mm.oscPitch()
+        time.sleep(15)
+        self.mm.oscYaw()
+        time.sleep(15)
+        self.line.append([0.5-0.5*w,0.5+0.5*w,0.5-0.5*l3-l2-l1,0.5-0.5*l3-l2-l1])
+        self.line.append([0.5-0.5*w,0.5+0.5*w,0.5+0.5*l3+l2+l1,0.5+0.5*l3+l2+l1])
+        self.line.append([0.5-0.5*w,0.5-0.5*w,0.5-0.5*l3-l2-l1,0.5+0.5*l3+l2+l1])
+        self.line.append([0.5+0.5*w,0.5+0.5*w,0.5-0.5*l3-l2-l1,0.5+0.5*l3+l2+l1])
+        self.line.append([0.5-0.5*w,0.5+0.5*w,0.5-0.5*l3-l2   ,0.5-0.5*l3-l2   ])
+        self.line.append([0.5-0.5*w,0.5+0.5*w,0.5-0.5*l3      ,0.5-0.5*l3      ])
+        self.line.append([0.5-0.5*w,0.5+0.5*w,0.5+0.5*l3      ,0.5+0.5*l3      ])
+        self.line.append([0.5-0.5*w,0.5+0.5*w,0.5+0.5*l3+l2   ,0.5+0.5*l3+l2   ])
+        self._show()
+        self._cure(800)
+        ''' boundaries '''
+        def f1():
+            self._field_go(90,15)
+            time.sleep(10)
+            self._showCureRect(90,90,  [0.5-0.5*w,0.5-0.5*l3-l2-l1,w,l1],oscAzimuth=True,oscPolar=False,waitTime_s=10)
+        def f2():
+            self._field_go(-90,15)
+            time.sleep(10)
+            self._showCureRect(-90,90,     [0.5-0.5*w,0.5-0.5*l3-l2,   w,l2],oscAzimuth=True,oscPolar=False,waitTime_s=10)
+        def f3(): self._showCureRect(0,0,    [0.5-0.5*w,0.5-0.5*l3,      w,l3],oscAzimuth=False,oscPolar=True,waitTime_s=60)
+        def f4(): self._showCureRect(90,90,  [0.5-0.5*w,0.5+0.5*l3,      w,l2],oscAzimuth=True,oscPolar=False,waitTime_s=0)
+        def f5(): self._showCureRect(-90,90,   [0.5-0.5*w,0.5+0.5*l3+l2,   w,l1],oscAzimuth=True,oscPolar=False,waitTime_s=0)
+        for i in range(len(curingOrder)):
+            pieceId = curingOrder.index(i+1)
+            function = 'f' + str(pieceId+1) + '()'
+            eval(function)
+
+    def _macro_fingers(self):
+        p = 0.85
+        bh = 0.3 * p
+        bv = 0.3 * p
+        w = 0.15 * p
+        l1 = 0.08 * p #opposite
+        l2 = 0.27 * p
+        curingOrder = [1,2]
+
+        def f1():
+            self.rect.append([0.5-0.5*(bv+l1),0.5-0.5*bh,bv,bh]) #base
+            self._showCureRect(0,0,  [0.5-0.5*(bv+l1)+bv,0.5-0.5*w,l2,w],oscAzimuth=False,oscPolar=True,waitTime_s=20)
+        def f2():
+            self._showCureRect(0,180,  [0.5-0.5*(bv+l1)+bv+l2,0.5-0.5*w,l1,w],oscAzimuth=False,oscPolar=True,waitTime_s=20)
+        for i in range(len(curingOrder)):
             pieceId = curingOrder.index(i+1)
             function = 'f' + str(pieceId+1) + '()'
             eval(function)
 
     def _macro_batch_swimmer(self):
-        p = 0.1
+        p = 0.2
         w = 0.48 * p
         l1 = 0.25 * p
         l2 = 0.23 * p
@@ -175,16 +1551,41 @@ class TextProcess(object):
         ''' l1  l2  l3  l2  l1 '''  # length
         ''' R   U   L   D   R  '''  # magnetization
         ''' 4   1   3   2   5  '''  # curingOrder
+
+        ''' boundaries '''
+        self._field_go(0,0)
+        self.mm.oscPitch()
+        time.sleep(15)
+        self.mm.oscYaw()
+        time.sleep(15)
+        self._batch_line_append([0.5-0.5*w,0.5+0.5*w,0.5-0.5*l3-l2-l1,0.5-0.5*l3-l2-l1],dx,dy,lengthX,lengthY)
+        self._batch_line_append([0.5-0.5*w,0.5+0.5*w,0.5+0.5*l3+l2+l1,0.5+0.5*l3+l2+l1],dx,dy,lengthX,lengthY)
+        self._batch_line_append([0.5-0.5*w,0.5-0.5*w,0.5-0.5*l3-l2-l1,0.5+0.5*l3+l2+l1],dx,dy,lengthX,lengthY)
+        self._batch_line_append([0.5+0.5*w,0.5+0.5*w,0.5-0.5*l3-l2-l1,0.5+0.5*l3+l2+l1],dx,dy,lengthX,lengthY)
+        self._batch_line_append([0.5-0.5*w,0.5+0.5*w,0.5-0.5*l3-l2   ,0.5-0.5*l3-l2   ],dx,dy,lengthX,lengthY)
+        self._batch_line_append([0.5-0.5*w,0.5+0.5*w,0.5-0.5*l3      ,0.5-0.5*l3      ],dx,dy,lengthX,lengthY)
+        self._batch_line_append([0.5-0.5*w,0.5+0.5*w,0.5+0.5*l3      ,0.5+0.5*l3      ],dx,dy,lengthX,lengthY)
+        self._batch_line_append([0.5-0.5*w,0.5+0.5*w,0.5+0.5*l3+l2   ,0.5+0.5*l3+l2   ],dx,dy,lengthX,lengthY)
+        self._show()
+        self._cure(800)
+        ''' view batch '''
+        # self._batch_rect_append([0.5-0.5*w,0.5-0.5*l3-l2-l1,w,l1],dx,dy,lengthX,lengthY)
+        # self._batch_rect_append([0.5-0.5*w,0.5-0.5*l3-l2,   w,l2],dx,dy,lengthX,lengthY)
+        # self._batch_rect_append([0.5-0.5*w,0.5-0.5*l3,      w,l3],dx,dy,lengthX,lengthY)
+        # self._batch_rect_append([0.5-0.5*w,0.5+0.5*l3,      w,l2],dx,dy,lengthX,lengthY)
+        # self._batch_rect_append([0.5-0.5*w,0.5+0.5*l3+l2,   w,l1],dx,dy,lengthX,lengthY)
+        # self._show()
+        ''' fabrication '''
         def f1():
             self._field_go(90,15)
             time.sleep(10)
             self._showCureRectBatch(90,90,         [0.5-0.5*w,0.5-0.5*l3-l2-l1,w,l1],dx,dy,lengthX,lengthY,oscAzimuth=True,oscPolar=False,waitTime_s=0)
-        def f2(): self._showCureRectBatch(0,0,     [0.5-0.5*w,0.5-0.5*l3-l2,   w,l2],dx,dy,lengthX,lengthY,oscAzimuth=False,oscPolar=True,waitTime_s=120)
+        def f2(): self._showCureRectBatch(0,0,     [0.5-0.5*w,0.5-0.5*l3-l2,   w,l2],dx,dy,lengthX,lengthY,oscAzimuth=False,oscPolar=True,waitTime_s=20)
         def f3():
             self._field_go(-90,15)
             time.sleep(10)
             self._showCureRectBatch(-90,90,  [0.5-0.5*w,0.5-0.5*l3,      w,l3],dx,dy,lengthX,lengthY,oscAzimuth=True,oscPolar=False,waitTime_s=5)
-        def f4(): self._showCureRectBatch(0,180,   [0.5-0.5*w,0.5+0.5*l3,      w,l2],dx,dy,lengthX,lengthY,oscAzimuth=False,oscPolar=True,waitTime_s=120)
+        def f4(): self._showCureRectBatch(0,180,   [0.5-0.5*w,0.5+0.5*l3,      w,l2],dx,dy,lengthX,lengthY,oscAzimuth=False,oscPolar=True,waitTime_s=20)
         def f5(): self._showCureRectBatch(90,90,   [0.5-0.5*w,0.5+0.5*l3+l2,   w,l1],dx,dy,lengthX,lengthY,oscAzimuth=False,oscPolar=False,waitTime_s=10)
         for i in range(5):
             pieceId = curingOrder.index(i+1)
@@ -200,21 +1601,6 @@ class TextProcess(object):
         while self.client.isBusy:
             time.sleep(.5)
         time.sleep(waitSec)
-
-    def _batch_line_append(self,x1,x2,y1,y2,numX,numY,dx,dy):
-        for i in range(numX):
-            for j in range(numY):
-                xOff = dx * i
-                yOff = dy * j
-                theta = math.atan2(y1-y2,x1-x2)
-                w = 0.001
-                x = [x1-w*math.cos(theta),x2-w*math.cos(theta),x2+w*math.cos(theta),x1+w*math.cos(theta)]
-                y = [y1-w*math.sin(theta),y2-w*math.sin(theta),y2+w*math.sin(theta),y1+w*math.sin(theta)]
-                x = [i+xOff for i in x]
-                y = [i+yOff for i in y]
-                vertices = np.column_stack((x,y))
-                item = matplotlib.patches.Polygon(vertices,closed=True,color='white')
-                self.polygon.append(item)
 
     def _batch_rect_append(self,rectArray,dx,dy,lengthX,lengthY):
         numberHalfSideX = int(0.5*(1-lengthX)/(dx+lengthX))
@@ -239,6 +1625,30 @@ class TextProcess(object):
         self.rect.append(rectArray)
         self._show()
         self._cure(exposureTime_ms)
+
+    def _showCureRing(self,phi,theta,ringArray,oscAzimuth=False,oscPolar=False,waitTime_s=0,exposureTime_ms=0):
+        self._field_go(phi,theta)
+        if(oscAzimuth):
+            self.mm.oscYaw()
+            time.sleep(15)
+        if(oscPolar):
+            self.mm.oscPitch()
+            time.sleep(15)
+        if not waitTime_s == 0:
+            self.mm.powerOff()
+            time.sleep(waitTime_s)
+            self.mm.powerOn()
+        self.ring.append(ringArray)
+        self._show()
+        self._cure(exposureTime_ms)
+
+    def _batch_line_append(self,lineArray,dx,dy,lengthX,lengthY):
+        numberHalfSideX = int(0.5*(1-lengthX)/(dx+lengthX))
+        numberHalfSideY = int(0.5*(1-lengthY)/(dy+lengthY))
+        for i in range(numberHalfSideX*2+1):
+            for j in range(numberHalfSideY*2+1):
+                newLine = [x + y for x, y in zip(lineArray, [(i-numberHalfSideX)*(dx+lengthX),(i-numberHalfSideX)*(dx+lengthX),(j-numberHalfSideY)*(dy+lengthY),(j-numberHalfSideY)*(dy+lengthY)]) ]
+                self.line.append(newLine)
 
     def _showCureRectBatch(self,phi,theta,rectArray,dx,dy,lengthX,lengthY,oscAzimuth=False,oscPolar=False,waitTime_s=0,exposureTime_ms=0):
         self._field_go(phi,theta)
@@ -266,15 +1676,21 @@ class TextProcess(object):
         self.polygon.append(item)
 
     def _show(self):
-        empty = self.rect == [] and self.cir == [] and self.polygon == []
+        empty = self.line == [] and self.rect == [] and self.cir == [] and self.polygon == [] and self.ring == []
         if not empty:
             self.plot.clear()
+            if self.line:
+                [self.plot.addLine(*r) for r in self.line]
+                self.line = []
             if self.rect:
                 [self.plot.addRect(*r) for r in self.rect]
                 self.rect = []
             if self.cir:
                 [self.plot.addCir(*r) for r in self.cir]
                 self.cir = []
+            if self.ring:
+                [self.plot.addRing(*r) for r in self.ring]
+                self.ring = []
             if self.polygon:
                 [self.plot.addPolygon(r) for r in self.polygon]
                 self.polygon = []
