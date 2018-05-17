@@ -6,6 +6,7 @@ class MyPlot(object):
     def __init__(self):
         plt.ion()
         self.fig, self.ax = plt.subplots(facecolor=(0,0,0))
+        self.fig.dpi = 500
         plt.subplots_adjust(left=0, bottom=0, right=1, top=1)
         self.ax.set_aspect('equal')
         plt.axis('off')
