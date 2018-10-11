@@ -18,3 +18,4 @@ if __name__ == "__main__":
     window = GUI(sensor)
     window.show()
     sys.exit(app.exec_())
+ 
