@@ -140,6 +140,8 @@ class TextProcess(object):
                 self._macro_multiaxis()
             if name == 'grippermulti':
                 self._macro_grippermulti()
+            if name == 'fan':
+                self._macro_fan()
             if name == 'twist':
                 self._macro_twist()
             if name == 'swimmer':
@@ -466,23 +468,50 @@ class TextProcess(object):
 
 
     def _macro_accordion(self,num):
-        p = 0.9
-        l = 0.5 / num * p
-        w = 0.6 * p
-        for i in range(num):
-            self.rect.append([0.5-0.5*w,0.5-l*num + i * 2 * l,w,l*0.8])
-            self.rect.append([0.5-0.5*0.5*w,0.5-l*num + i * 2 * l+l*0.9,w*0.5,l*0.2])
-        self._showCureRect(90,90,    [0.5-0.5*w,0.5-l*num,w,l],oscAzimuth=True,oscPolar=False,waitTime_s=15)
+        num = 3
+        p = 0.75
+        ll = 0.5 / num * p *0.9
+        ls = 0.5 / num * p *0.11
+        wl = 0.4 * p
+        ws = 0.4 * p * 0.9
+        self.rect.append([0.5-0.5*ws,0.5-0.5*ls-0*ll,ws,0.5*ls])
+        self.rect.append([0.5-0.5*wl,0.5-2.5*ls-3*ll,wl,ll])
+        self.rect.append([0.5-0.5*ws,0.5-1.5*ls-1*ll,ws,ls])
+        self.rect.append([0.5-0.5*wl,0.5-0.5*ls-1*ll,wl,ll])
+        self.rect.append([0.5-0.5*wl,0.5+1.5*ls+1*ll,wl,ll])
+        self.rect.append([0.5-0.5*ws,0.5+1.5*ls+2*ll,ws,ls])
+        self._showCureRect(90,90,    [0,0,0,0],oscAzimuth=True,oscPolar=False,waitTime_s=15)
         self._field_go(-90,25)
         time.sleep(10)
-        for i in range(num):
-            if not i == 2:
-                self.rect.append([0.5-0.5*w,0.5-l*num + l + i * 2 * l,w,l*0.8])
-                self.rect.append([0.5-0.5*0.5*w,0.5-l*num + l + i * 2 * l+ l*0.9,w*0.5,l*0.2])
-            else:
-                self.rect.append([0.5-0.5*w,0.5-l*num + l + i * 2 * l,w,l])
-        self._showCureRect(-90,90,   [0.5-0.5*w,0.5-l*num + l,w,l],oscAzimuth=True,oscPolar=False,waitTime_s=15)
+        self.rect.append([0.5-0.5*ws,0.5+0*ls+0*ll,ws,0.5*ls])
+        self.rect.append([0.5-0.5*ws,0.5-2.5*ls-2*ll,ws,ls])
+        self.rect.append([0.5-0.5*wl,0.5-1.5*ls-2*ll,wl,ll])
+        self.rect.append([0.5-0.5*wl,0.5+0.5*ls+0*ll,wl,ll])
+        self.rect.append([0.5-0.5*ws,0.5+0.5*ls+1*ll,ws,ls])
+        self.rect.append([0.5-0.5*wl,0.5+2.5*ls+2*ll,wl,ll])
+        self._showCureRect(-90,90,   [0,0,0,0],oscAzimuth=True,oscPolar=False,waitTime_s=20)
         # self._show()
+        self._field_go(0,90)
+
+        # def _macro_accordion(self,num):
+        #     p = 0.7
+        #     l = 0.5 / num * p
+        #     w = 0.4 * p
+        #     for i in range(num):
+        #         self.rect.append([0.5-0.5*w,0.5-l*num + i * 2 * l,w,l*0.9])
+        #     for i in range(num-1):
+        #         self.rect.append([0.5-0.5*0.8*w,0.5-l*num + i * 2 * l+l*0.9,w*0.8,l*0.1])
+        #     # self._showCureRect(90,90,    [0,0,0,0],oscAzimuth=True,oscPolar=False,waitTime_s=15)
+        #     # self._field_go(-90,25)
+        #     # time.sleep(10)
+        #     for i in range(num):
+        #         self.rect.append([0.5-0.5*w,0.5-l*num + l + i * 2 * l,w,l*0.9])
+        #         if i <= 2:
+        #             self.rect.append([0.5-0.5*0.8*w,0.5-l*num + l + i * 2 * l+ l*0.9,w*0.8,l*0.1])
+        #         # self.rect.append([0.5-0.5*w,0.5-l*num + l + i * 2 * l,w,l])
+        #     # self._showCureRect(-90,90,   [0,0,0,0],oscAzimuth=True,oscPolar=True,waitTime_s=60)
+        #     self._show()
+        #     # self._field_go(0,90)
 
     def _macro_capsule(self):
         p = 0.6
@@ -631,38 +660,60 @@ class TextProcess(object):
 
     def _macro_multiaxis(self):
         p = 0.7
-        w = 0.23 * p
+        w = 0.15 * p
         r = 0.5 * p
-        w_hinge = 0.6 * w
+        w_hinge = 0 * w
         segment = 3
-        startSegment = 0.05
-        endSegment = 0.95
+        startSegment = 0
+        endSegment = 1.01
 
         for i in range(segment):
             angle1 = 90+90/segment+360/segment*i
             angle2 = 270/segment-90+360/segment*i
-            self.ring.append([0.5,0.5,r-0.5*w_hinge,(w-w_hinge),360/segment*i + 0.0*180/segment, 360/segment*i + startSegment*180/segment])
             self.ring.append([0.5,0.5,r,w*1.0,360/segment*i + startSegment*180/segment, 360/segment*i + endSegment*180/segment])
-            self.ring.append([0.5,0.5,r-0.5*w_hinge,(w-w_hinge),360/segment*i + endSegment*180/segment, 360/segment*i + 1.0*180/segment])
             self._showCureRect(int(180-angle1),90, [0,0,0.0001,0.0001],oscAzimuth=True,oscPolar=False,waitTime_s=20)
             self._field_go(int(180-angle1),40)
-            self.ring.append([0.5,0.5,r-0.5*w_hinge,(w-w_hinge),360/segment*i + 1.0*180/segment, 360/segment*i + (1+startSegment)*180/segment])
             self.ring.append([0.5,0.5,r,w*1.0,360/segment*i + (1+startSegment)*180/segment, 360/segment*i + (1+endSegment)*180/segment])
-            self.ring.append([0.5,0.5,r-0.5*w_hinge,(w-w_hinge),360/segment*i + (1+endSegment)*180/segment, 360/segment*i + 2.0*180/segment])
-            self.ring.append([0.5,0.5,r,w, 360/segment*i + 180/segment, 360/segment*(i+1)])
             self._showCureRect(int(180-angle2),90, [0,0,0.0001,0.0001],oscAzimuth=True,oscPolar=False,waitTime_s=20)
             self._field_go(int(180-angle2),40)
         self._field_go(0,90)
         # self._show()
 
+    # def _macro_multiaxis(self):
+    #     p = 0.7
+    #     w = 0.23 * p
+    #     r = 0.5 * p
+    #     w_hinge = 0.6 * w
+    #     segment = 3
+    #     startSegment = 0.05
+    #     endSegment = 0.95
+    #
+    #     for i in range(segment):
+    #         angle1 = 90+90/segment+360/segment*i
+    #         angle2 = 270/segment-90+360/segment*i
+    #         self.ring.append([0.5,0.5,r-0.5*w_hinge,(w-w_hinge),360/segment*i + 0.0*180/segment, 360/segment*i + startSegment*180/segment])
+    #         self.ring.append([0.5,0.5,r,w*1.0,360/segment*i + startSegment*180/segment, 360/segment*i + endSegment*180/segment])
+    #         self.ring.append([0.5,0.5,r-0.5*w_hinge,(w-w_hinge),360/segment*i + endSegment*180/segment, 360/segment*i + 1.0*180/segment])
+    #         self._showCureRect(int(180-angle1),90, [0,0,0.0001,0.0001],oscAzimuth=True,oscPolar=False,waitTime_s=20)
+    #         self._field_go(int(180-angle1),40)
+    #         self.ring.append([0.5,0.5,r-0.5*w_hinge,(w-w_hinge),360/segment*i + 1.0*180/segment, 360/segment*i + (1+startSegment)*180/segment])
+    #         self.ring.append([0.5,0.5,r,w*1.0,360/segment*i + (1+startSegment)*180/segment, 360/segment*i + (1+endSegment)*180/segment])
+    #         self.ring.append([0.5,0.5,r-0.5*w_hinge,(w-w_hinge),360/segment*i + (1+endSegment)*180/segment, 360/segment*i + 2.0*180/segment])
+    #         self.ring.append([0.5,0.5,r,w, 360/segment*i + 180/segment, 360/segment*(i+1)])
+    #         self._showCureRect(int(180-angle2),90, [0,0,0.0001,0.0001],oscAzimuth=True,oscPolar=False,waitTime_s=20)
+    #         self._field_go(int(180-angle2),40)
+    #     self._field_go(0,90)
+    #     # self._show()
+
     def _macro_gripper(self):
         p = 0.6
-        w = 0.48 * p
+        w = 0.2 * p
         l1 = 0.14 * p
         l2 = 0.14 * p
         l3 = 0.24 * p
-        gw = w * 0.5
-        gl = 0.015 * p
+        gw = w * 0.85
+        gl1 = 0.015 * p
+        gl2 = 0.01 * p
         curingOrder = [2,3,1,5,4]
         ''' 1    2    3    4    5  '''  # pieceId
         ''' l1   l2   l3   l2   l1 '''  # length
@@ -670,30 +721,30 @@ class TextProcess(object):
         ''' 2    3    1    5    4  '''  # curingOrder
 
         def f1():
-            self.rect.append([0.5-0.5*gw,0.5-0.5*l3-gl-l2-gl,gw,gl])
-            self.rect.append([0.5-0.5*w,0.5-0.5*l3-l2-l1-2*gl,w,l1])
-            # self._showCureRect(-90,150+15, [0.5-0.5*w,0.5-0.5*l3-l2-l1-2*gl,w,l1],oscAzimuth=False,oscPolar=True,waitTime_s=120)
+            self.rect.append([0.5-0.5*gw,0.5-0.5*l3-gl1-l2-gl2,gw,gl1])
+            self.rect.append([0.5-0.5*w,0.5-0.5*l3-l2-l1-gl1-gl2,w,l1])
+            self._showCureRect(-90,150+15, [0.5-0.5*w,0.5-0.5*l3-l2-l1-gl1-gl2,w,l1],oscAzimuth=False,oscPolar=True,waitTime_s=120)
         def f2():
-            self.rect.append([0.5-0.5*gw,0.5-0.5*l3-gl,gw,gl])
-            self.rect.append([0.5-0.5*w,0.5-0.5*l3-gl-l2,   w,l2])
-            # self._showCureRect(-90,120,    [0.5-0.5*w,0.5-0.5*l3-gl-l2,   w,l2],oscAzimuth=False,oscPolar=False,waitTime_s=40)
+            self.rect.append([0.5-0.5*gw,0.5-0.5*l3-gl2,gw,gl2])
+            self.rect.append([0.5-0.5*w,0.5-0.5*l3-gl2-l2,   w,l2])
+            self._showCureRect(-90,120,   [0.5-0.5*w,0.5-0.5*l3-gl2-l2,   w,l2],oscAzimuth=False,oscPolar=False,waitTime_s=40)
         def f3():
             self.rect.append( [0.5-0.5*w,0.5-0.5*l3,      w,l3])
-            # self._showCureRect(0,0,        [0.5-0.5*w,0.5-0.5*l3,      w,l3],oscAzimuth=False,oscPolar=True,waitTime_s=120)
+            self._showCureRect(0,0,        [0.5-0.5*w,0.5-0.5*l3,      w,l3],oscAzimuth=False,oscPolar=True,waitTime_s=120)
         def f4():
-            self.rect.append([0.5-0.5*gw,0.5+0.5*l3,gw,gl])
-            self.rect.append([0.5-0.5*w,0.5+0.5*l3+gl,      w,l2])
-            # self._showCureRect(90,120,     [0.5-0.5*w,0.5+0.5*l3+gl,      w,l2],oscAzimuth=False,oscPolar=False,waitTime_s=40)
+            self.rect.append([0.5-0.5*gw,0.5+0.5*l3,gw,gl2])
+            self.rect.append([0.5-0.5*w,0.5+0.5*l3+gl2,      w,l2])
+            self._showCureRect(90,120,     [0.5-0.5*w,0.5+0.5*l3+gl2,      w,l2],oscAzimuth=False,oscPolar=False,waitTime_s=40)
         def f5():
-            self.rect.append([0.5-0.5*gw,0.5+0.5*l3+gl+l2,gw,gl])
-            self.rect.append([0.5-0.5*w,0.5+0.5*l3+l2+gl*2,   w,l1])
-            # self._showCureRect(90,150+15,  [0.5-0.5*w,0.5+0.5*l3+l2+gl*2,   w,l1],oscAzimuth=False,oscPolar=True,waitTime_s=120)
+            self.rect.append([0.5-0.5*gw,0.5+0.5*l3+gl2+l2,gw,gl1])
+            self.rect.append([0.5-0.5*w,0.5+0.5*l3+l2+gl1+gl2,   w,l1])
+            self._showCureRect(90,150+15,  [0.5-0.5*w,0.5+0.5*l3+l2+gl1+gl2,   w,l1],oscAzimuth=False,oscPolar=True,waitTime_s=120)
         for i in range(len(curingOrder)):
             pieceId = curingOrder.index(i+1)
             function = 'f' + str(pieceId+1) + '()'
             eval(function)
-        self._show()
-        # self._field_go(0,90)
+        # self._show()
+        self._field_go(0,90)
 
     def _macro_gripperfour(self):
         p = 0.6
@@ -755,16 +806,116 @@ class TextProcess(object):
         self._field_go(0,90)
 
     #
-    def _macro_grippermulti(self):
-        p = 0.6
+    # def _macro_grippermulti(self):
+    #     p = 0.7
+    #     n = 3
+    #     w = 0.2 * p
+    #     l1 = 0.3 * p
+    #     l2 = 0.3 * p
+    #     gw1 = w * 1     # width of the hinge 0.5
+    #     gl1 = l1 * 0.02   # length of the hinge 0.2
+    #     gw2 = w * 1
+    #     gl2 = l2 * 0.02
+    #
+    #     # x1 and y1 are points in the first quadrant.
+    #     y1 = 0.5 + w / 2
+    #     x1 = 0.5 + (w / 2) / mathfx.tand(180/n)
+    #     xArray = []
+    #     yArray = []
+    #
+    #     # base
+    #     for i in range(0,n):
+    #         xNew, yNew = mathfx.rotatePoint(origin=(0.5,0.5),point=(x1,y1),angle=(360/n*i))
+    #         xArray.append(xNew)
+    #         yArray.append(yNew)
+    #     xArray = [1-i for i in xArray] # mapping of matlibplot coordinate to the actual coordinate
+    #     pointsArray = xArray + yArray # [x1,x2,x3,...,xn,y1,y2,y3,...,yn]
+    #     self._polygon_append(pointsArray)
+    #     self._showCureRect(0,0,[0,0,0,0],oscAzimuth=True,oscPolar=True,waitTime_s=60)
+    #
+    #     for i in range(0,n):
+    #         # arm_far
+    #         # square tip
+    #         xArray = [x1+l1+gl1,x1+l1+gl1+gl2,x1+l1+gl1+gl2,x1+l1+gl1+gl2+l2,x1+l1+gl1+gl2+l2,x1+l1+gl1+gl2,x1+l1+gl1+gl2,x1+l1+gl1]
+    #         yArray = [0.5-0.5*gw1,0.5-0.5*gw1,0.5-0.5*w,0.5-0.5*w,0.5+0.5*w,0.5+0.5*w,0.5+0.5*gw1,0.5+0.5*gw1]
+    #         # triangular tip
+    #         # xArray = [x1+l1+gl1,x1+l1+gl1+gl2,x1+l1+gl1+gl2,x1+l1+gl1+gl2+l2,x1+l1+gl1+gl2,x1+l1+gl1+gl2,x1+l1+gl1]
+    #         # yArray = [0.5-0.5*gw1,0.5-0.5*gw1,0.5-0.5*w,0.5,0.5+0.5*w,0.5+0.5*gw1,0.5+0.5*gw1]
+    #         xNewArray, yNewArray = mathfx.rotatePointArray((0.5,0.5),xArray,yArray,(360/n*i))
+    #         xNewArray = [1-i for i in xNewArray] # mapping of matlibplot coordinate to the actual coordinate
+    #         self._polygon_append(xNewArray + yNewArray)
+    #         self._showCureRect(int(360/n*i)+15,150,[0,0,0,0],oscAzimuth=False,oscPolar=False,waitTime_s=60)
+    #
+    #         # arm_close
+    #         xArray = [x1,x1+gl1,x1+gl1,x1+gl1+l1,x1+gl1+l1,x1+gl1,x1+gl1,x1]
+    #         yArray = [0.5-0.5*gw1,0.5-0.5*gw1,0.5-0.5*w,0.5-0.5*w,0.5+0.5*w,0.5+0.5*w,0.5+0.5*gw1,0.5+0.5*gw1]
+    #         xNewArray, yNewArray = mathfx.rotatePointArray((0.5,0.5),xArray,yArray,(360/n*i))
+    #         xNewArray = [1-i for i in xNewArray] # mapping of matlibplot coordinate to the actual coordinate
+    #         self._polygon_append(xNewArray + yNewArray)
+    #         self._showCureRect(int(360/n*i)+75,120,[0,0,0,0],oscAzimuth=False,oscPolar=False,waitTime_s=60)
+    #     # self._show()
+    #     self._field_go(0,90)
+
+    def _macro_fan(self):
+        p = 0.7
         n = 3
         w = 0.2 * p
         l1 = 0.2 * p
         l2 = 0.2 * p
-        gw1 = w * 0.5     # width of the hinge 0.5
-        gl1 = l1 * 0.2   # length of the hinge 0.2
-        gw2 = w * 0.5
-        gl2 = l2 * 0.2
+        gw1 = w * 0.8     # width of the hinge 0.5
+        gl1 = l1 * 0.05   # length of the hinge 0.2
+        gw2 = w * 0.8
+        gl2 = l2 * 0.05
+
+        # x1 and y1 are points in the first quadrant.
+        y1 = 0.5 + w / 2
+        x1 = 0.5 + (w / 2) / mathfx.tand(180/n)
+        xArray = []
+        yArray = []
+
+        # base
+        for i in range(0,n):
+            xNew, yNew = mathfx.rotatePoint(origin=(0.5,0.5),point=(x1,y1),angle=(360/n*i))
+            xArray.append(xNew)
+            yArray.append(yNew)
+        xArray = [1-i for i in xArray] # mapping of matlibplot coordinate to the actual coordinate
+        pointsArray = xArray + yArray # [x1,x2,x3,...,xn,y1,y2,y3,...,yn]
+        self._polygon_append(pointsArray)
+        self._showCureRect(0,0,[0,0,0,0],oscAzimuth=False,oscPolar=False,waitTime_s=20)
+
+        for i in range(0,3):
+            # arm_far
+            # square tip
+            xArray = [x1+l1+gl1-0.01*w,x1+l1+gl1+gl2,x1+l1+gl1+gl2,x1+l1+gl1+gl2+l2,x1+l1+gl1+gl2+l2,x1+l1+gl1+gl2,x1+l1+gl1+gl2,x1+l1+gl1-0.01*w]
+            yArray = [0.5-0.5*gw1,0.5-0.5*gw1,0.5-0.5*w,0.5-0.5*w,0.5+0.5*w,0.5+0.5*w,0.5+0.5*gw1,0.5+0.5*gw1]
+            # triangular tip
+            # xArray = [x1+l1+gl1,x1+l1+gl1+gl2,x1+l1+gl1+gl2,x1+l1+gl1+gl2+l2,x1+l1+gl1+gl2,x1+l1+gl1+gl2,x1+l1+gl1]
+            # yArray = [0.5-0.5*gw1,0.5-0.5*gw1,0.5-0.5*w,0.5,0.5+0.5*w,0.5+0.5*gw1,0.5+0.5*gw1]
+            xNewArray, yNewArray = mathfx.rotatePointArray((0.5,0.5),xArray,yArray,(360/n*i))
+            xNewArray = [1-i for i in xNewArray] # mapping of matlibplot coordinate to the actual coordinate
+            self._polygon_append(xNewArray + yNewArray)
+            self._showCureRect(int(360/n*i)+45,150,[0,0,0,0],oscAzimuth=False,oscPolar=False,waitTime_s=20)
+
+            # arm_close
+            xArray = [x1-0.01*w,x1+gl1,x1+gl1,x1+gl1+l1,x1+gl1+l1,x1+gl1,x1+gl1,x1-0.01*w]
+            yArray = [0.5-0.5*gw1,0.5-0.5*gw1,0.5-0.5*w,0.5-0.5*w,0.5+0.5*w,0.5+0.5*w,0.5+0.5*gw1,0.5+0.5*gw1]
+            xNewArray, yNewArray = mathfx.rotatePointArray((0.5,0.5),xArray,yArray,(360/n*i))
+            xNewArray = [1-i for i in xNewArray] # mapping of matlibplot coordinate to the actual coordinate
+            self._polygon_append(xNewArray + yNewArray)
+            self._showCureRect(int(360/n*i)+45,90,[0,0,0,0],oscAzimuth=False,oscPolar=False,waitTime_s=20)
+        # self._show()
+        self._field_go(0,90)
+
+    def _macro_grippermulti(self):
+        p = 0.2
+        n = 5
+        w = 0.7 * p
+        l1 = 0.7 * p
+        l2 = 0.606 * p
+        gw1 = w * 0.8     # width of the hinge 0.8
+        gl1 = l1 * 0.15   # length of the hinge 0.09
+        gw2 = w * 0.8
+        gl2 = l1 * 0.15
 
         # x1 and y1 are points in the first quadrant.
         y1 = 0.5 + w / 2
@@ -784,16 +935,12 @@ class TextProcess(object):
 
         for i in range(0,n):
             # arm_far
-            # square tip
-            # xArray = [x1+l1+gl1,x1+l1+gl1+gl2,x1+l1+gl1+gl2,x1+l1+gl1+gl2+l2,x1+l1+gl1+gl2+l2,x1+l1+gl1+gl2,x1+l1+gl1+gl2,x1+l1+gl1]
-            # yArray = [0.5-0.5*gw1,0.5-0.5*gw1,0.5-0.5*w,0.5-0.5*w,0.5+0.5*w,0.5+0.5*w,0.5+0.5*gw1,0.5+0.5*gw1]
-            # triangular tip
             xArray = [x1+l1+gl1,x1+l1+gl1+gl2,x1+l1+gl1+gl2,x1+l1+gl1+gl2+l2,x1+l1+gl1+gl2,x1+l1+gl1+gl2,x1+l1+gl1]
             yArray = [0.5-0.5*gw1,0.5-0.5*gw1,0.5-0.5*w,0.5,0.5+0.5*w,0.5+0.5*gw1,0.5+0.5*gw1]
             xNewArray, yNewArray = mathfx.rotatePointArray((0.5,0.5),xArray,yArray,(360/n*i))
             xNewArray = [1-i for i in xNewArray] # mapping of matlibplot coordinate to the actual coordinate
             self._polygon_append(xNewArray + yNewArray)
-            self._showCureRect(int(360/n*i),160,[0,0,0,0],oscAzimuth=True,oscPolar=True,waitTime_s=120)
+            self._showCureRect(int(360/n*i),165,[0,0,0,0],oscAzimuth=True,oscPolar=True,waitTime_s=100)
 
             # arm_close
             xArray = [x1,x1+gl1,x1+gl1,x1+gl1+l1,x1+gl1+l1,x1+gl1,x1+gl1,x1]
@@ -801,55 +948,9 @@ class TextProcess(object):
             xNewArray, yNewArray = mathfx.rotatePointArray((0.5,0.5),xArray,yArray,(360/n*i))
             xNewArray = [1-i for i in xNewArray] # mapping of matlibplot coordinate to the actual coordinate
             self._polygon_append(xNewArray + yNewArray)
-            self._showCureRect(int(360/n*i),125,[0,0,0,0],oscAzimuth=True,oscPolar=False,waitTime_s=20)
+            self._showCureRect(int(360/n*i),125,[0,0,0,0],oscAzimuth=True,oscPolar=False,waitTime_s=30)
         self._show()
         self._field_go(0,90)
-
-    # def _macro_grippermulti(self):
-    #     p = 0.2
-    #     n = 4
-    #     w = 0.7 * p
-    #     l1 = 0.7 * p
-    #     l2 = 0.606 * p
-    #     gw1 = w * 0.214     # width of the hinge 0.8
-    #     gl1 = l1 * 0.143   # length of the hinge 0.09
-    #     gw2 = w * 0.214
-    #     gl2 = l1 * 0.143
-    #
-    #     # x1 and y1 are points in the first quadrant.
-    #     y1 = 0.5 + w / 2
-    #     x1 = 0.5 + (w / 2) / mathfx.tand(180/n)
-    #     xArray = []
-    #     yArray = []
-    #
-    #     # base
-    #     for i in range(0,n):
-    #         xNew, yNew = mathfx.rotatePoint(origin=(0.5,0.5),point=(x1,y1),angle=(360/n*i))
-    #         xArray.append(xNew)
-    #         yArray.append(yNew)
-    #     xArray = [1-i for i in xArray] # mapping of matlibplot coordinate to the actual coordinate
-    #     pointsArray = xArray + yArray # [x1,x2,x3,...,xn,y1,y2,y3,...,yn]
-    #     self._polygon_append(pointsArray)
-    #     self._showCureRect(0,0,[0,0,0,0],oscAzimuth=True,oscPolar=True,waitTime_s=120)
-    #
-    #     for i in range(0,n):
-    #         # arm_far
-    #         xArray = [x1+l1+gl1,x1+l1+gl1+gl2,x1+l1+gl1+gl2,x1+l1+gl1+gl2+l2,x1+l1+gl1+gl2,x1+l1+gl1+gl2,x1+l1+gl1]
-    #         yArray = [0.5-0.5*gw1,0.5-0.5*gw1,0.5-0.5*w,0.5,0.5+0.5*w,0.5+0.5*gw1,0.5+0.5*gw1]
-    #         xNewArray, yNewArray = mathfx.rotatePointArray((0.5,0.5),xArray,yArray,(360/n*i))
-    #         xNewArray = [1-i for i in xNewArray] # mapping of matlibplot coordinate to the actual coordinate
-    #         self._polygon_append(xNewArray + yNewArray)
-    #         self._showCureRect(int(360/n*i),180,[0,0,0,0],oscAzimuth=True,oscPolar=True,waitTime_s=100)
-    #
-    #         # arm_close
-    #         xArray = [x1,x1+gl1,x1+gl1,x1+gl1+l1,x1+gl1+l1,x1+gl1,x1+gl1,x1]
-    #         yArray = [0.5-0.5*gw1,0.5-0.5*gw1,0.5-0.5*w,0.5-0.5*w,0.5+0.5*w,0.5+0.5*w,0.5+0.5*gw1,0.5+0.5*gw1]
-    #         xNewArray, yNewArray = mathfx.rotatePointArray((0.5,0.5),xArray,yArray,(360/n*i))
-    #         xNewArray = [1-i for i in xNewArray] # mapping of matlibplot coordinate to the actual coordinate
-    #         self._polygon_append(xNewArray + yNewArray)
-    #         self._showCureRect(int(360/n*i),115,[0,0,0,0],oscAzimuth=True,oscPolar=False,waitTime_s=30)
-    #     self._show()
-    #     self._field_go(0,90)
 
     def _macro_twist(self):
         p = 0.4
